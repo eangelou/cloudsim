@@ -30,6 +30,10 @@ import flanagan.analysis.Regression;
  * @since CloudSim Toolkit 3.0
  */
 public class PowerVmSelectionPolicyMaximumCorrelation extends PowerVmSelectionPolicy {
+	
+	
+	
+	/** TESTING IMPORT */
 
 	/** The fallback policy. */
 	private PowerVmSelectionPolicy fallbackPolicy;
