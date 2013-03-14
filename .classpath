@@ -3,6 +3,6 @@
 	<classpathentry kind="src" path="modules/cloudsim/src/main/java"/>
 	<classpathentry kind="src" path="modules/cloudsim-examples/src/main/java"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.7"/>
-	<classpathentry kind="lib" path="/home/vagos/.m2/repository/org/flanagan/flanagan/1.0/flanagan-1.0.jar"/>
+	<classpathentry kind="lib" path="documentation/src/main/resources/flanagan.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

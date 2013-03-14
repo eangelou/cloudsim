@@ -132,7 +132,7 @@ public class PowerVmSelectionPolicyMaximumCorrelation extends PowerVmSelectionPo
 					x[k++] = data[j];
 				}
 			}
-
+			
 			Regression reg = new Regression(x, data[i]);
 			reg.linear();
 			correlationCoefficients.add(reg.getCoefficientOfDetermination());
