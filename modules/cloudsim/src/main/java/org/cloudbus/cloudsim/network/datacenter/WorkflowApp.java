@@ -46,6 +46,8 @@ public class WorkflowApp extends AppCloudlet {
 		NetworkCloudlet cl = new NetworkCloudlet(
 				NetworkConstants.currentCloudletId,
 				0,
+				//TODO check iopsLength if it should be zero or no?
+				0,
 				1,
 				fileSize,
 				outputSize,
@@ -70,6 +72,8 @@ public class WorkflowApp extends AppCloudlet {
 		// Task B
 		NetworkCloudlet clb = new NetworkCloudlet(
 				NetworkConstants.currentCloudletId,
+				0,
+				//TODO check iopsLength if it should be zero or no?
 				0,
 				1,
 				fileSize,
@@ -103,6 +107,8 @@ public class WorkflowApp extends AppCloudlet {
 		// Task C
 		NetworkCloudlet clc = new NetworkCloudlet(
 				NetworkConstants.currentCloudletId,
+				0,
+				//TODO check iopsLength if it should be zero or no?
 				0,
 				1,
 				fileSize,

@@ -83,6 +83,7 @@ public class CloudSimExample2 {
 	            	//VM description
 	            	int vmid = 0;
 	            	int mips = 250;
+	            	int iops = 0;
 	            	long size = 10000; //image size (MB)
 	            	int ram = 512; //vm memory (MB)
 	            	long bw = 1000;
@@ -90,10 +91,10 @@ public class CloudSimExample2 {
 	            	String vmm = "Xen"; //VMM name
 
 	            	//create two VMs
-	            	Vm vm1 = new Vm(vmid, brokerId, mips, pesNumber, ram, bw, size, vmm, new CloudletSchedulerTimeShared());
+	            	Vm vm1 = new Vm(vmid, brokerId, mips, iops, pesNumber, ram, bw, size, vmm, new CloudletSchedulerTimeShared());
 
 	            	vmid++;
-	            	Vm vm2 = new Vm(vmid, brokerId, mips, pesNumber, ram, bw, size, vmm, new CloudletSchedulerTimeShared());
+	            	Vm vm2 = new Vm(vmid, brokerId, mips, iops, pesNumber, ram, bw, size, vmm, new CloudletSchedulerTimeShared());
 
 	            	//add the VMs to the vmList
 	            	vmlist.add(vm1);
@@ -110,15 +111,16 @@ public class CloudSimExample2 {
 	            	int id = 0;
 	            	pesNumber=1;
 	            	long length = 250000;
+	    			long iopsLength = 10000;
 	            	long fileSize = 300;
 	            	long outputSize = 300;
 	            	UtilizationModel utilizationModel = new UtilizationModelFull();
 
-	            	Cloudlet cloudlet1 = new Cloudlet(id, length, pesNumber, fileSize, outputSize, utilizationModel, utilizationModel, utilizationModel);
+	            	Cloudlet cloudlet1 = new Cloudlet(id, length, iopsLength, pesNumber, fileSize, outputSize, utilizationModel, utilizationModel, utilizationModel);
 	            	cloudlet1.setUserId(brokerId);
 
 	            	id++;
-	            	Cloudlet cloudlet2 = new Cloudlet(id, length, pesNumber, fileSize, outputSize, utilizationModel, utilizationModel, utilizationModel);
+	            	Cloudlet cloudlet2 = new Cloudlet(id, length, iopsLength, pesNumber, fileSize, outputSize, utilizationModel, utilizationModel, utilizationModel);
 	            	cloudlet2.setUserId(brokerId);
 
 	            	//add the cloudlets to the list

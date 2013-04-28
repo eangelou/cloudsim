@@ -66,6 +66,7 @@ public class PowerVm extends Vm {
 			int id,
 			int userId,
 			double mips,
+			double iops,
 			int pesNumber,
 			int ram,
 			long bw,
@@ -74,7 +75,7 @@ public class PowerVm extends Vm {
 			String vmm,
 			CloudletScheduler cloudletScheduler,
 			double schedulingInterval) {
-		super(id, userId, mips, pesNumber, ram, bw, size, vmm, cloudletScheduler);
+		super(id, userId, mips, iops, pesNumber, ram, bw, size, vmm, cloudletScheduler);
 		setSchedulingInterval(schedulingInterval);
 	}
 
@@ -91,8 +92,8 @@ public class PowerVm extends Vm {
 	 * @post $none
 	 */
 	@Override
-	public double updateVmProcessing(double currentTime, List<Double> mipsShare) {
-		double time = super.updateVmProcessing(currentTime, mipsShare);
+	public double updateVmProcessing(double currentTime, List<Double> mipsShare, Double iopsShare) {
+		double time = super.updateVmProcessing(currentTime, mipsShare, iopsShare);
 		if (currentTime > getPreviousTime() && (currentTime - 0.1) % getSchedulingInterval() == 0) {
 			double utilization = getTotalUtilizationOfCpu(getCloudletScheduler().getPreviousTime());
 			if (CloudSim.clock() != 0 || utilization != 0) {

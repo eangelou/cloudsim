@@ -49,7 +49,10 @@ public class RandomHelper {
 			if (seed == -1) {
 				cloudlet = new Cloudlet(
 						i,
-						Constants.CLOUDLET_LENGTH,
+						2000,
+						//Constants.CLOUDLET_LENGTH,
+						//TODO gspilio: every cloudlet has 200000 IOPS
+						200000,
 						Constants.CLOUDLET_PES,
 						fileSize,
 						outputSize,
@@ -59,7 +62,10 @@ public class RandomHelper {
 			} else {
 				cloudlet = new Cloudlet(
 						i,
-						Constants.CLOUDLET_LENGTH,
+						2000,
+						//Constants.CLOUDLET_LENGTH,
+						//TODO gspilio: every cloudlet has 200000 IOPS
+						200000,
 						Constants.CLOUDLET_PES,
 						fileSize,
 						outputSize,

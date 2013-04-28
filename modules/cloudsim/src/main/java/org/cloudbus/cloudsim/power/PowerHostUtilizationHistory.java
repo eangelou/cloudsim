@@ -14,6 +14,7 @@ import org.cloudbus.cloudsim.Pe;
 import org.cloudbus.cloudsim.VmScheduler;
 import org.cloudbus.cloudsim.power.models.PowerModel;
 import org.cloudbus.cloudsim.provisioners.BwProvisioner;
+import org.cloudbus.cloudsim.provisioners.IoProvisioner;
 import org.cloudbus.cloudsim.provisioners.RamProvisioner;
 import org.cloudbus.cloudsim.util.MathUtil;
 
@@ -47,13 +48,14 @@ public class PowerHostUtilizationHistory extends PowerHost {
 	 */
 	public PowerHostUtilizationHistory(
 			int id,
+			IoProvisioner ioProvisioner,
 			RamProvisioner ramProvisioner,
 			BwProvisioner bwProvisioner,
 			long storage,
 			List<? extends Pe> peList,
 			VmScheduler vmScheduler,
 			PowerModel powerModel) {
-		super(id, ramProvisioner, bwProvisioner, storage, peList, vmScheduler, powerModel);
+		super(id, ioProvisioner, ramProvisioner, bwProvisioner, storage, peList, vmScheduler, powerModel);
 	}
 
 	/**

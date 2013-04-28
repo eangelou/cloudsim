@@ -38,9 +38,12 @@ public class ResCloudlet {
 	/** The length of Cloudlet finished so far. */
 	private long cloudletFinishedSoFar;
 
+	/** The Iops of Cloudlet finished so far. */
+	private long cloudletIopsFinishedSoFar;
+
 	/**
 	 * Cloudlet execution start time. This attribute will only hold the latest time since a Cloudlet
-	 * can be cancel, paused or resumed.
+	 * can be canceled, paused or resumed.
 	 */
 	private double startExecTime;
 
@@ -217,6 +220,7 @@ public class ResCloudlet {
 		// In case a Cloudlet has been executed partially by some other grid
 		// hostList.
 		cloudletFinishedSoFar = cloudlet.getCloudletFinishedSoFar() * Consts.MILLION;
+		cloudletIopsFinishedSoFar = cloudlet.getCloudletIopsFinishedSoFar();
 	}
 
 	/**
@@ -250,6 +254,17 @@ public class ResCloudlet {
 	 */
 	public long getCloudletLength() {
 		return cloudlet.getCloudletLength();
+	}
+	
+	/**
+	 * Gets the Cloudlet's Iops Length.
+	 * 
+	 * @return Cloudlet's Iops length
+	 * @pre $none
+	 * @post $none
+	 */
+	public long getCloudletIopsLength() {
+		return cloudlet.getCloudletIopsLength();
 	}
 
 	/**
@@ -354,7 +369,7 @@ public class ResCloudlet {
 		cloudlet.setExecParam(wallClockTime, actualCPUTime);
 	}
 
-	/**
+	/**getCloudletLength()
 	 * Sets the machine and Pe (Processing Element) ID.
 	 * 
 	 * @param machineId machine ID
@@ -441,6 +456,24 @@ public class ResCloudlet {
 	}
 
 	/**
+	 * Gets the remaining cloudlet IOPS length.
+	 * 
+	 * @return cloudlet IOPS length
+	 * @pre $none
+	 * @post $result >= 0
+	 */
+	public long getRemainingIopsCloudletLength() {
+		long length = cloudlet.getCloudletIopsLength() - cloudletIopsFinishedSoFar;
+
+		// Remaining Cloudlet length can't be negative number.
+		if (length < 0) {
+			return 0;
+		}
+
+		return (long) Math.floor(length);
+	}
+
+	/**
 	 * Finalizes all relevant information before <tt>exiting</tt> the CloudResource entity. This
 	 * method sets the final data of:
 	 * <ul>
@@ -448,6 +481,7 @@ public class ResCloudlet {
 	 * time until departure time).
 	 * <li>actual CPU time, i.e. the total execution time of this Cloudlet in a CloudResource.
 	 * <li>Cloudlet's finished so far
+	 * <li>Cloudlet's Iops finished so far
 	 * </ul>
 	 * 
 	 * @pre $none
@@ -463,10 +497,22 @@ public class ResCloudlet {
 		if (cloudlet.getCloudletStatus()==Cloudlet.SUCCESS) {
 			finished = cloudlet.getCloudletLength();
 		} else {
+			//TODO If MIPS have been depleted and there are still remaining IOPS finished will be greater than cloudletLength
 			finished = cloudletFinishedSoFar / Consts.MILLION;
 		}
 
 		cloudlet.setCloudletFinishedSoFar(finished);
+
+		finished = 0;
+		//if (cloudlet.getCloudletTotalLength() * Consts.MILLION < cloudletFinishedSoFar) {
+		if (cloudlet.getCloudletStatus()==Cloudlet.SUCCESS) {
+			finished = cloudlet.getCloudletIopsLength();
+		} else {
+			//TODO If MIPS have been depleted and there are still remaining IOPS finished will be greater than cloudletLength
+			finished = cloudletIopsFinishedSoFar;
+		}
+
+		cloudlet.setCloudletIopsFinishedSoFar(finished);
 	}
 
 	/**
@@ -478,6 +524,17 @@ public class ResCloudlet {
 	 */
 	public void updateCloudletFinishedSoFar(long miLength) {
 		cloudletFinishedSoFar += miLength;
+	}
+
+	/**
+	 * A method that updates the IOPS length of cloudlet that has been completed.
+	 * 
+	 * @param miLength cloudlet length in Instructions (I)
+	 * @pre miLength >= 0.0
+	 * @post $none
+	 */
+	public void updateCloudletIopsFinishedSoFar(long iopsLength) {
+		cloudletIopsFinishedSoFar += iopsLength;
 	}
 
 	/**

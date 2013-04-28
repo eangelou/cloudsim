@@ -34,6 +34,7 @@ import org.cloudbus.cloudsim.power.PowerHostUtilizationHistory;
 import org.cloudbus.cloudsim.power.PowerVm;
 import org.cloudbus.cloudsim.power.PowerVmAllocationPolicyMigrationAbstract;
 import org.cloudbus.cloudsim.provisioners.BwProvisionerSimple;
+import org.cloudbus.cloudsim.provisioners.IoProvisionerSimple;
 import org.cloudbus.cloudsim.provisioners.PeProvisionerSimple;
 import org.cloudbus.cloudsim.provisioners.RamProvisionerSimple;
 import org.cloudbus.cloudsim.util.MathUtil;
@@ -69,6 +70,8 @@ public class Helper {
 					i,
 					brokerId,
 					Constants.VM_MIPS[vmType],
+					//TODO gspilio: VM iops not used
+					2000,
 					Constants.VM_PES[vmType],
 					Constants.VM_RAM[vmType],
 					Constants.VM_BW,
@@ -100,6 +103,8 @@ public class Helper {
 
 			hostList.add(new PowerHostUtilizationHistory(
 					i,
+					//TODO gspilio: All hosts have 200000 IOPS
+					new IoProvisionerSimple(10000),
 					new RamProvisionerSimple(Constants.HOST_RAM[hostType]),
 					new BwProvisionerSimple(Constants.HOST_BW),
 					Constants.HOST_STORAGE,

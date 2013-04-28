@@ -101,11 +101,12 @@ public class CloudSimExample1 {
 			// Cloudlet properties
 			int id = 0;
 			long length = 400000;
+			long iopsLength = 10000;
 			long fileSize = 300;
 			long outputSize = 300;
 			UtilizationModel utilizationModel = new UtilizationModelFull();
 
-			Cloudlet cloudlet = new Cloudlet(id, length, pesNumber, fileSize, outputSize, utilizationModel, utilizationModel, utilizationModel);
+			Cloudlet cloudlet = new Cloudlet(id, length, iopsLength, pesNumber, fileSize, outputSize, utilizationModel, utilizationModel, utilizationModel);
 			cloudlet.setUserId(brokerId);
 			cloudlet.setVmId(vmid);
 

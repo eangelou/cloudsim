@@ -271,13 +271,15 @@ public class WorkloadFileReader implements WorkloadModel {
 			final int numProc,
 			final int reqRunTime,
 			final int userID,
-			final int groupID) {
+			final int groupID,
+			final long iopsLength) {
 		// create the cloudlet
 		final int len = runTime * rating;
 		UtilizationModel utilizationModel = new UtilizationModelFull();
 		final Cloudlet wgl = new Cloudlet(
 				id,
 				len,
+				iopsLength,
 				numProc,
 				0,
 				0,
@@ -345,7 +347,8 @@ public class WorkloadFileReader implements WorkloadModel {
 			if (numProc <= 0) {
 				numProc = 1;
 			}
-			createJob(id, submitTime, runTime, numProc, reqRunTime, userID, groupID);
+			//TODO read IOPS length from trace and not use default value
+			createJob(id, submitTime, runTime, numProc, reqRunTime, userID, groupID, 10000);
 		} catch (final Exception e) {
 
 		}

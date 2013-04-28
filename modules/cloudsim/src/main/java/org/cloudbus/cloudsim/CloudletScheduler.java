@@ -26,6 +26,10 @@ public abstract class CloudletScheduler {
 
 	/** The current mips share. */
 	private List<Double> currentMipsShare;
+	
+
+	/** The current iops share. */
+	private Double currentIopsShare;
 
 	/**
 	 * Creates a new CloudletScheduler object. This method must be invoked before starting the
@@ -48,10 +52,10 @@ public abstract class CloudletScheduler {
 	 * @pre currentTime >= 0
 	 * @post $none
 	 */
-	public abstract double updateVmProcessing(double currentTime, List<Double> mipsShare);
+	public abstract double updateVmProcessing(double currentTime, List<Double> mipsShare, Double iopsShare);
 
 	/**
-	 * Receives an cloudlet to be executed in the VM managed by this scheduler.
+	 * Receives a cloudlet to be executed in the VM managed by this scheduler.
 	 * 
 	 * @param gl the submited cloudlet
 	 * @param fileTransferTime time required to move the required files from the SAN to the VM
@@ -62,7 +66,7 @@ public abstract class CloudletScheduler {
 	public abstract double cloudletSubmit(Cloudlet gl, double fileTransferTime);
 
 	/**
-	 * Receives an cloudlet to be executed in the VM managed by this scheduler.
+	 * Receives a cloudlet to be executed in the VM managed by this scheduler.
 	 * 
 	 * @param gl the submited cloudlet
 	 * @return expected finish time of this cloudlet, or 0 if it is in a waiting queue
@@ -213,6 +217,14 @@ public abstract class CloudletScheduler {
 	public abstract double getCurrentRequestedUtilizationOfBw();
 
 	/**
+	 * Returns an estimation for the completion time of a cloudlet
+	 * @param rcl the rcl
+	 * @param time the time
+	 * @return the estimated completion time for cloudlet
+	 */
+	protected abstract double getEstimatedFinishTime(ResCloudlet rcl, double time, long iopsCapacity);
+	
+	/**
 	 * Gets the previous time.
 	 * 
 	 * @return the previous time
@@ -246,6 +258,24 @@ public abstract class CloudletScheduler {
 	 */
 	public List<Double> getCurrentMipsShare() {
 		return currentMipsShare;
+	}
+	
+	/**
+	 * Sets the current iops share.
+	 * 
+	 * @param currentMipsShare the new current iops share
+	 */
+	protected void setCurrentIopsShare(Double currentIopsShare) {
+		this.currentIopsShare = currentIopsShare;
+	}
+
+	/**
+	 * Gets the current mips share.
+	 * 
+	 * @return the current mips share
+	 */
+	public Double getCurrentIopsShare() {
+		return currentIopsShare;
 	}
 
 }

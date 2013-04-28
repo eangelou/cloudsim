@@ -51,7 +51,9 @@ public class PlanetLabHelper {
 			try {
 				cloudlet = new Cloudlet(
 						i,
-						Constants.CLOUDLET_LENGTH,
+						100000,
+						//TODO gspilio: IOPS=MIPS
+						100000,
 						Constants.CLOUDLET_PES,
 						fileSize,
 						outputSize,

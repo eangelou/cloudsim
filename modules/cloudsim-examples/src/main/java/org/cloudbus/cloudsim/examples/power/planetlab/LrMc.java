@@ -32,7 +32,7 @@ public class LrMc {
 	public static void main(String[] args) throws IOException {
 		boolean enableOutput = true;
 		boolean outputToFile = false;
-		String inputFolder = LrMc.class.getClassLoader().getResource("workload/planetlab").getPath();
+		String inputFolder = "/home/giannis/diplomatiki/cloudsim/modules/cloudsim-examples/src/main/resources/workload/planetlab/";//LrMc.class.getClassLoader().getResource("workload/planetlab").getPath();
 		String outputFolder = "output";
 		String workload = "20110303"; // PlanetLab workload
 		String vmAllocationPolicy = "lr"; // Local Regression (LR) VM allocation policy

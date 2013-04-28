@@ -34,6 +34,7 @@ import org.cloudbus.cloudsim.core.CloudSim;
 import org.cloudbus.cloudsim.core.SimEntity;
 import org.cloudbus.cloudsim.core.SimEvent;
 import org.cloudbus.cloudsim.provisioners.BwProvisionerSimple;
+import org.cloudbus.cloudsim.provisioners.IoProvisionerSimple;
 import org.cloudbus.cloudsim.provisioners.PeProvisionerSimple;
 import org.cloudbus.cloudsim.provisioners.RamProvisionerSimple;
 
@@ -58,6 +59,7 @@ public class CloudSimExample8 {
 		long size = 10000; //image size (MB)
 		int ram = 512; //vm memory (MB)
 		int mips = 250;
+		int iops = 10;
 		long bw = 1000;
 		int pesNumber = 1; //number of cpus
 		String vmm = "Xen"; //VMM name
@@ -66,7 +68,7 @@ public class CloudSimExample8 {
 		Vm[] vm = new Vm[vms];
 
 		for(int i=0;i<vms;i++){
-			vm[i] = new Vm(idShift + i, userId, mips, pesNumber, ram, bw, size, vmm, new CloudletSchedulerTimeShared());
+			vm[i] = new Vm(idShift + i, userId, mips, iops, pesNumber, ram, bw, size, vmm, new CloudletSchedulerTimeShared());
 			list.add(vm[i]);
 		}
 
@@ -80,6 +82,7 @@ public class CloudSimExample8 {
 
 		//cloudlet parameters
 		long length = 40000;
+		long iopsLength = 1000000;
 		long fileSize = 300;
 		long outputSize = 300;
 		int pesNumber = 1;
@@ -88,7 +91,7 @@ public class CloudSimExample8 {
 		Cloudlet[] cloudlet = new Cloudlet[cloudlets];
 
 		for(int i=0;i<cloudlets;i++){
-			cloudlet[i] = new Cloudlet(idShift + i, length, pesNumber, fileSize, outputSize, utilizationModel, utilizationModel, utilizationModel);
+			cloudlet[i] = new Cloudlet(idShift + i, length, iopsLength, pesNumber, fileSize, outputSize, utilizationModel, utilizationModel, utilizationModel);
 			// setting the owner of these Cloudlets
 			cloudlet[i].setUserId(userId);
 			list.add(cloudlet[i]);
@@ -188,12 +191,14 @@ public class CloudSimExample8 {
 		//4. Create Hosts with its id and list of PEs and add them to the list of machines
 		int hostId=0;
 		int ram = 16384; //host memory (MB)
+		int iops = 10000;
 		long storage = 1000000; //host storage
 		int bw = 10000;
 
 		hostList.add(
     			new Host(
     				hostId,
+    				new IoProvisionerSimple(iops),
     				new RamProvisionerSimple(ram),
     				new BwProvisionerSimple(bw),
     				storage,
@@ -207,6 +212,7 @@ public class CloudSimExample8 {
 		hostList.add(
     			new Host(
     				hostId,
+    				new IoProvisionerSimple(iops),
     				new RamProvisionerSimple(ram),
     				new BwProvisionerSimple(bw),
     				storage,

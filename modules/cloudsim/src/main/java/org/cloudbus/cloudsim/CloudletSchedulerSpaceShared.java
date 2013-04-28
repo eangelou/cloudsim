@@ -72,24 +72,18 @@ public class CloudletSchedulerSpaceShared extends CloudletScheduler {
 	 * @post $none
 	 */
 	@Override
-	public double updateVmProcessing(double currentTime, List<Double> mipsShare) {
+	public double updateVmProcessing(double currentTime, List<Double> mipsShare, Double iopsShare) {
 		setCurrentMipsShare(mipsShare);
+		setCurrentIopsShare(iopsShare);
 		double timeSpam = currentTime - getPreviousTime(); // time since last update
-		double capacity = 0.0;
-		int cpus = 0;
-
-		for (Double mips : mipsShare) { // count the CPUs available to the VMM
-			capacity += mips;
-			if (mips > 0) {
-				cpus++;
-			}
-		}
-		currentCpus = cpus;
-		capacity /= cpus; // average capacity of each cpu
+		
+		long iopsCapacity = (long) (iopsShare / getCloudletExecList().size());
+		double capacity = getCapacity(mipsShare);
 
 		// each machine in the exec list has the same amount of cpu
 		for (ResCloudlet rcl : getCloudletExecList()) {
 			rcl.updateCloudletFinishedSoFar((long) (capacity * timeSpam * rcl.getNumberOfPes() * Consts.MILLION));
+			rcl.updateCloudletIopsFinishedSoFar((long) (iopsCapacity * timeSpam));
 		}
 
 		// no more cloudlets in this scheduler
@@ -103,7 +97,7 @@ public class CloudletSchedulerSpaceShared extends CloudletScheduler {
 		List<ResCloudlet> toRemove = new ArrayList<ResCloudlet>();
 		for (ResCloudlet rcl : getCloudletExecList()) {
 			// finished anyway, rounding issue...
-			if (rcl.getRemainingCloudletLength() == 0) {
+			if (rcl.getRemainingCloudletLength() == 0 && rcl.getRemainingIopsCloudletLength() == 0) {
 				toRemove.add(rcl);
 				cloudletFinish(rcl);
 				finished++;
@@ -131,20 +125,12 @@ public class CloudletSchedulerSpaceShared extends CloudletScheduler {
 			}
 		}
 
+		iopsCapacity = (long) (iopsShare / getCloudletExecList().size());
+		
 		// estimate finish time of cloudlets in the execution queue
-		double nextEvent = Double.MAX_VALUE;
-		for (ResCloudlet rcl : getCloudletExecList()) {
-			double remainingLength = rcl.getRemainingCloudletLength();
-			double estimatedFinishTime = currentTime + (remainingLength / (capacity * rcl.getNumberOfPes()));
-			if (estimatedFinishTime - currentTime < 0.1) {
-				estimatedFinishTime = currentTime + 0.1;
-			}
-			if (estimatedFinishTime < nextEvent) {
-				nextEvent = estimatedFinishTime;
-			}
-		}
+
 		setPreviousTime(currentTime);
-		return nextEvent;
+		return updateCloudletsFinishTimeEstimations(currentTime);
 	}
 
 	/**
@@ -169,7 +155,7 @@ public class CloudletSchedulerSpaceShared extends CloudletScheduler {
 		for (ResCloudlet rcl : getCloudletExecList()) {
 			if (rcl.getCloudletId() == cloudletId) {
 				getCloudletExecList().remove(rcl);
-				if (rcl.getRemainingCloudletLength() == 0) {
+				if (rcl.getRemainingCloudletLength() == 0 && rcl.getRemainingIopsCloudletLength() == 0) {
 					cloudletFinish(rcl);
 				} else {
 					rcl.setCloudletStatus(Cloudlet.CANCELED);
@@ -224,7 +210,7 @@ public class CloudletSchedulerSpaceShared extends CloudletScheduler {
 		if (found) {
 			// moves to the paused list
 			ResCloudlet rgl = getCloudletExecList().remove(position);
-			if (rgl.getRemainingCloudletLength() == 0) {
+			if (rgl.getRemainingCloudletLength() == 0 && rgl.getRemainingIopsCloudletLength() == 0) {
 				cloudletFinish(rgl);
 			} else {
 				rgl.setCloudletStatus(Cloudlet.PAUSED);
@@ -248,7 +234,7 @@ public class CloudletSchedulerSpaceShared extends CloudletScheduler {
 		if (found) {
 			// moves to the paused list
 			ResCloudlet rgl = getCloudletWaitingList().remove(position);
-			if (rgl.getRemainingCloudletLength() == 0) {
+			if (rgl.getRemainingCloudletLength() == 0 && rgl.getRemainingIopsCloudletLength() == 0) {
 				cloudletFinish(rgl);
 			} else {
 				rgl.setCloudletStatus(Cloudlet.PAUSED);
@@ -311,34 +297,27 @@ public class CloudletSchedulerSpaceShared extends CloudletScheduler {
 				long size = rcl.getRemainingCloudletLength();
 				size *= rcl.getNumberOfPes();
 				rcl.getCloudlet().setCloudletLength(size);
-
+				
+				rcl.getCloudlet().setCloudletIopsLength( rcl.getRemainingIopsCloudletLength() );
+				
 				getCloudletExecList().add(rcl);
 				usedPes += rcl.getNumberOfPes();
 
-				// calculate the expected time for cloudlet completion
-				double capacity = 0.0;
-				int cpus = 0;
-				for (Double mips : getCurrentMipsShare()) {
-					capacity += mips;
-					if (mips > 0) {
-						cpus++;
-					}
-				}
-				currentCpus = cpus;
-				capacity /= cpus;
 
-				long remainingLength = rcl.getRemainingCloudletLength();
-				double estimatedFinishTime = CloudSim.clock()
-						+ (remainingLength / (capacity * rcl.getNumberOfPes()));
-
-				return estimatedFinishTime;
+				long iopsCapacity = (long) (getCurrentIopsShare() / runningCloudlets());
+			
+				//TODO gspilio: check if we need to update the estimatedFinishTime for all the cloudlets
+				
+				return getEstimatedFinishTime(rcl, CloudSim.clock(), iopsCapacity);
 			} else {// no enough free PEs: go to the waiting queue
 				rcl.setCloudletStatus(Cloudlet.QUEUED);
 
 				long size = rcl.getRemainingCloudletLength();
 				size *= rcl.getNumberOfPes();
 				rcl.getCloudlet().setCloudletLength(size);
-
+				
+				rcl.getCloudlet().setCloudletIopsLength( rcl.getRemainingIopsCloudletLength() );
+				
 				getCloudletWaitingList().add(rcl);
 				return 0.0;
 			}
@@ -355,15 +334,17 @@ public class CloudletSchedulerSpaceShared extends CloudletScheduler {
 	 * 
 	 * @param cloudlet the submited cloudlet
 	 * @param fileTransferTime time required to move the required files from the SAN to the VM
-	 * @return expected finish time of this cloudlet, or 0 if it is in the waiting queue
+	 * @return expected finish time (duration) of this cloudlet, or 0 if it is in the waiting queue
 	 * @pre gl != null
 	 * @post $none
 	 */
 	@Override
 	public double cloudletSubmit(Cloudlet cloudlet, double fileTransferTime) {
 		// it can go to the exec list
+
+		ResCloudlet rcl = new ResCloudlet(cloudlet);
+		
 		if ((currentCpus - usedPes) >= cloudlet.getNumberOfPes()) {
-			ResCloudlet rcl = new ResCloudlet(cloudlet);
 			rcl.setCloudletStatus(Cloudlet.INEXEC);
 			for (int i = 0; i < cloudlet.getNumberOfPes(); i++) {
 				rcl.setMachineAndPeId(0, i);
@@ -371,32 +352,26 @@ public class CloudletSchedulerSpaceShared extends CloudletScheduler {
 			getCloudletExecList().add(rcl);
 			usedPes += cloudlet.getNumberOfPes();
 		} else {// no enough free PEs: go to the waiting queue
-			ResCloudlet rcl = new ResCloudlet(cloudlet);
 			rcl.setCloudletStatus(Cloudlet.QUEUED);
 			getCloudletWaitingList().add(rcl);
 			return 0.0;
 		}
 
-		// calculate the expected time for cloudlet completion
-		double capacity = 0.0;
-		int cpus = 0;
-		for (Double mips : getCurrentMipsShare()) {
-			capacity += mips;
-			if (mips > 0) {
-				cpus++;
-			}
-		}
 
-		currentCpus = cpus;
-		capacity /= cpus;
 
+		long iopsCapacity = (long) (getCurrentIopsShare() / runningCloudlets());
+		
 		// use the current capacity to estimate the extra amount of
 		// time to file transferring. It must be added to the cloudlet length
-		double extraSize = capacity * fileTransferTime;
+		double extraSize = getCapacity(getCurrentMipsShare()) * fileTransferTime;
 		long length = cloudlet.getCloudletLength();
 		length += extraSize;
 		cloudlet.setCloudletLength(length);
-		return cloudlet.getCloudletLength() / capacity;
+	
+		//TODO gspilio: check if we need to update the estimatedFinishTime for all the cloudlets
+		
+		//return cloudlet.getCloudletLength() / capacity;
+		return getEstimatedFinishTime(rcl, CloudSim.clock(), iopsCapacity);
 	}
 
 	/*
@@ -505,6 +480,7 @@ public class CloudletSchedulerSpaceShared extends CloudletScheduler {
 		ResCloudlet rcl = getCloudletExecList().remove(0);
 		rcl.finalizeCloudlet();
 		Cloudlet cl = rcl.getCloudlet();
+		//TODO gspilio: should we update the estimated finishing times?
 		usedPes -= cl.getNumberOfPes();
 		return cl;
 	}
@@ -664,5 +640,59 @@ public class CloudletSchedulerSpaceShared extends CloudletScheduler {
 		// TODO Auto-generated method stub
 		return 0;
 	}
+
+	/**
+	 * Gets the capacity.
+	 * 
+	 * @param mipsShare the mips share
+	 * @return the capacity
+	 */
+	protected double getCapacity(List<Double> mipsShare) {
+		double capacity = 0.0;
+		int cpus = 0;
+		for (Double mips : mipsShare) {
+			capacity += mips;
+			if (mips > 0.0) {
+				cpus++;
+			}
+		}
+		currentCpus = cpus;
+		capacity /= currentCpus;
+		
+		return capacity;
+	}
+	
+	/**
+	 * Returns an estimation for the completion time of a cloudlet
+	 * @param rcl the rcl
+	 * @param time the time
+	 * @return the estimated completion time for cloudlet
+	 */
+	protected double getEstimatedFinishTime(ResCloudlet rcl, double time, long iopsCapacity){
+		
+		long remainingLength = rcl.getRemainingCloudletLength();
+		double remainingIopsLength = rcl.getRemainingIopsCloudletLength();
+		double estimatedMipsTime = remainingLength / (getCapacity(getCurrentMipsShare()) * rcl.getNumberOfPes());
+		double estimatedIopsTime = remainingIopsLength / iopsCapacity;
+		double estimatedFinishTime = time + ((estimatedIopsTime > estimatedMipsTime) ? estimatedIopsTime : estimatedMipsTime);  
+		if (estimatedFinishTime - time < 0.1) {
+			estimatedFinishTime = time + 0.1;
+		}
+		return estimatedFinishTime;
+	}
+	
+	protected double updateCloudletsFinishTimeEstimations(double time){
+		long iopsCapacity = (long) (getCurrentIopsShare() / runningCloudlets());
+		
+		double nextEvent = Double.MAX_VALUE;
+		for (ResCloudlet rcl : getCloudletExecList()) {
+			double estimatedFinishTime = getEstimatedFinishTime(rcl, time, iopsCapacity);
+			if (estimatedFinishTime < nextEvent) {
+				nextEvent = estimatedFinishTime;
+			}
+		}
+		return nextEvent;	
+	}
+	
 
 }

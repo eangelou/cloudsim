@@ -37,6 +37,9 @@ public class Vm {
 	/** The MIPS. */
 	private double mips;
 
+	/** The IOPS. */
+	private double iops;
+	
 	/** The number of PEs. */
 	private int numberOfPes;
 
@@ -46,6 +49,8 @@ public class Vm {
 	/** The bw. */
 	private long bw;
 
+	private int ioBw;
+	
 	/** The vmm. */
 	private String vmm;
 
@@ -63,6 +68,9 @@ public class Vm {
 
 	/** The current allocated ram. */
 	private int currentAllocatedRam;
+
+	/** The current allocated IoBw. */
+	private int currentAllocatedIoBw;
 
 	/** The current allocated bw. */
 	private long currentAllocatedBw;
@@ -82,6 +90,7 @@ public class Vm {
 	 * @param id unique ID of the VM
 	 * @param userId ID of the VM's owner
 	 * @param mips the mips
+	 * @param iops the iops
 	 * @param numberOfPes amount of CPUs
 	 * @param ram amount of ram
 	 * @param bw amount of bandwidth
@@ -102,6 +111,7 @@ public class Vm {
 			int id,
 			int userId,
 			double mips,
+			double iops,
 			int numberOfPes,
 			int ram,
 			long bw,
@@ -112,6 +122,7 @@ public class Vm {
 		setUserId(userId);
 		setUid(getUid(userId, id));
 		setMips(mips);
+		setIops(iops);
 		setNumberOfPes(numberOfPes);
 		setRam(ram);
 		setBw(bw);
@@ -138,9 +149,9 @@ public class Vm {
 	 * @pre currentTime >= 0
 	 * @post $none
 	 */
-	public double updateVmProcessing(double currentTime, List<Double> mipsShare) {
+	public double updateVmProcessing(double currentTime, List<Double> mipsShare, Double iopsShare) {
 		if (mipsShare != null) {
-			return getCloudletScheduler().updateVmProcessing(currentTime, mipsShare);
+			return getCloudletScheduler().updateVmProcessing(currentTime, mipsShare, iopsShare);
 		}
 		return 0.0;
 	}
@@ -317,6 +328,24 @@ public class Vm {
 	protected void setMips(double mips) {
 		this.mips = mips;
 	}
+	
+	/**
+	 * Gets the iops.
+	 * 
+	 * @return the iops
+	 */
+	public double getIops() {
+		return iops;
+	}
+
+	/**
+	 * Sets the iops.
+	 * 
+	 * @param iops the new iops
+	 */
+	protected void setIops(double iops) {
+		this.iops = iops;
+	}
 
 	/**
 	 * Gets the number of pes.
@@ -356,6 +385,14 @@ public class Vm {
 	 */
 	public void setRam(int ram) {
 		this.ram = ram;
+	}
+	
+	public int getIoBw(){
+		return ioBw;
+	}
+	
+	public void setIoBw(int ioBw) {
+		this.ioBw = ioBw;
 	}
 
 	/**
@@ -512,6 +549,14 @@ public class Vm {
 	 */
 	public void setCurrentAllocatedRam(int currentAllocatedRam) {
 		this.currentAllocatedRam = currentAllocatedRam;
+	}
+	
+	public int getCurrentAllocatedIoBw() {
+		return currentAllocatedIoBw;
+	}
+	
+	public void setCurrentAllocatedIoBw(int currentAllocatedIoBw){
+		this.currentAllocatedIoBw = currentAllocatedIoBw;
 	}
 
 	/**

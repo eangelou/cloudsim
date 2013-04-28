@@ -15,6 +15,7 @@ import java.util.List;
 import org.cloudbus.cloudsim.core.CloudSim;
 import org.cloudbus.cloudsim.lists.PeList;
 import org.cloudbus.cloudsim.provisioners.BwProvisioner;
+import org.cloudbus.cloudsim.provisioners.IoProvisioner;
 import org.cloudbus.cloudsim.provisioners.RamProvisioner;
 
 /**
@@ -46,12 +47,13 @@ public class HostDynamicWorkload extends Host {
 	 */
 	public HostDynamicWorkload(
 			int id,
+			IoProvisioner ioProvisioner,
 			RamProvisioner ramProvisioner,
 			BwProvisioner bwProvisioner,
 			long storage,
 			List<? extends Pe> peList,
 			VmScheduler vmScheduler) {
-		super(id, ramProvisioner, bwProvisioner, storage, peList, vmScheduler);
+		super(id, ioProvisioner, ramProvisioner, bwProvisioner, storage, peList, vmScheduler);
 		setUtilizationMips(0);
 		setPreviousUtilizationMips(0);
 	}

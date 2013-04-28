@@ -476,8 +476,9 @@ public class Datacenter extends SimEntity {
 				vm.setBeingInstantiated(false);
 			}
 
-			vm.updateVmProcessing(CloudSim.clock(), getVmAllocationPolicy().getHost(vm).getVmScheduler()
-					.getAllocatedMipsForVm(vm));
+			Host host = getVmAllocationPolicy().getHost(vm);
+			vm.updateVmProcessing(CloudSim.clock(), host.getVmScheduler()
+					.getAllocatedMipsForVm(vm), host.getIopsAllocatedToEachVm());
 		}
 
 	}

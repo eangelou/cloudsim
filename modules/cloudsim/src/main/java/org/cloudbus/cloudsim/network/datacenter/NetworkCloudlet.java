@@ -34,6 +34,7 @@ public class NetworkCloudlet extends Cloudlet implements Comparable<Object> {
 	public NetworkCloudlet(
 			int cloudletId,
 			long cloudletLength,
+			long cloudletIopsLength,
 			int pesNumber,
 			long cloudletFileSize,
 			long cloudletOutputSize,
@@ -44,6 +45,7 @@ public class NetworkCloudlet extends Cloudlet implements Comparable<Object> {
 		super(
 				cloudletId,
 				cloudletLength,
+				cloudletIopsLength,
 				pesNumber,
 				cloudletFileSize,
 				cloudletOutputSize,

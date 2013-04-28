@@ -13,6 +13,8 @@ import java.util.List;
 import org.cloudbus.cloudsim.core.CloudSim;
 import org.cloudbus.cloudsim.lists.PeList;
 import org.cloudbus.cloudsim.provisioners.BwProvisioner;
+import org.cloudbus.cloudsim.provisioners.IoProvisioner;
+import org.cloudbus.cloudsim.provisioners.IoProvisionerSimple;
 import org.cloudbus.cloudsim.provisioners.RamProvisioner;
 
 /**
@@ -31,6 +33,9 @@ public class Host {
 
 	/** The storage. */
 	private long storage;
+	
+	/** The Io provisioner */
+	private IoProvisioner ioProvisioner;
 
 	/** The ram provisioner. */
 	private RamProvisioner ramProvisioner;
@@ -68,6 +73,7 @@ public class Host {
 	 */
 	public Host(
 			int id,
+			IoProvisioner ioProvisioner,
 			RamProvisioner ramProvisioner,
 			BwProvisioner bwProvisioner,
 			long storage,
@@ -96,7 +102,7 @@ public class Host {
 		double smallerTime = Double.MAX_VALUE;
 
 		for (Vm vm : getVmList()) {
-			double time = vm.updateVmProcessing(currentTime, getVmScheduler().getAllocatedMipsForVm(vm));
+			double time = vm.updateVmProcessing(currentTime, getVmScheduler().getAllocatedMipsForVm(vm), getIopsAllocatedToEachVm());
 			if (time > 0.0 && time < smallerTime) {
 				smallerTime = time;
 			}
@@ -105,6 +111,12 @@ public class Host {
 		return smallerTime;
 	}
 
+	public double getIopsAllocatedToEachVm() {
+		//double iops = (((double) ioProvisioner.getIoBw())/(getVmList().size()));
+		//return (iops > 150000) ? 150000 : iops;
+		return 10;
+	}
+	
 	/**
 	 * Adds the migrating in vm.
 	 * 
@@ -112,7 +124,7 @@ public class Host {
 	 */
 	public void addMigratingInVm(Vm vm) {
 		vm.setInMigration(true);
-
+		//Should we check remaining Io Bw too?
 		if (!getVmsMigratingIn().contains(vm)) {
 			if (getStorage() < vm.getSize()) {
 				Log.printLine("[VmScheduler.addMigratingInVm] Allocation of VM #" + vm.getId() + " to Host #"

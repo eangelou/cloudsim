@@ -35,7 +35,11 @@ public class Cloudlet {
 	 * The size of this Cloudlet to be executed in a CloudResource (unit: in MI).
 	 */
 	private long cloudletLength;
-
+	/**
+	 * The size of this Cloudlet to be executed in a CloudResource (unit: in IOOPS).
+	 */
+	private long cloudletIopsLength;
+	
 	/**
 	 * The input file size of this Cloudlet before execution (unit: in byte). in byte = program +
 	 * input data size
@@ -173,6 +177,7 @@ public class Cloudlet {
 	public Cloudlet(
 			final int cloudletId,
 			final long cloudletLength,
+			final long cloudletIopsLength,
 			final int pesNumber,
 			final long cloudletFileSize,
 			final long cloudletOutputSize,
@@ -182,6 +187,7 @@ public class Cloudlet {
 		this(
 				cloudletId,
 				cloudletLength,
+				cloudletIopsLength,
 				pesNumber,
 				cloudletFileSize,
 				cloudletOutputSize,
@@ -222,6 +228,7 @@ public class Cloudlet {
 	public Cloudlet(
 			final int cloudletId,
 			final long cloudletLength,
+			final long cloudletIopsLength,
 			final int pesNumber,
 			final long cloudletFileSize,
 			final long cloudletOutputSize,
@@ -233,6 +240,7 @@ public class Cloudlet {
 		this(
 				cloudletId,
 				cloudletLength,
+				cloudletIopsLength,
 				pesNumber,
 				cloudletFileSize,
 				cloudletOutputSize,
@@ -272,6 +280,7 @@ public class Cloudlet {
 	public Cloudlet(
 			final int cloudletId,
 			final long cloudletLength,
+			final long cloudletIopsLength,
 			final int pesNumber,
 			final long cloudletFileSize,
 			final long cloudletOutputSize,
@@ -282,6 +291,7 @@ public class Cloudlet {
 		this(
 				cloudletId,
 				cloudletLength,
+				cloudletIopsLength,
 				pesNumber,
 				cloudletFileSize,
 				cloudletOutputSize,
@@ -321,6 +331,7 @@ public class Cloudlet {
 	public Cloudlet(
 			final int cloudletId,
 			final long cloudletLength,
+			final long cloudletIopsLength,
 			final int pesNumber,
 			final long cloudletFileSize,
 			final long cloudletOutputSize,
@@ -339,6 +350,7 @@ public class Cloudlet {
 
 		// Cloudlet length, Input and Output size should be at least 1 byte.
 		this.cloudletLength = Math.max(1, cloudletLength);
+		this.cloudletIopsLength = Math.max(1, cloudletIopsLength);
 		this.cloudletFileSize = Math.max(1, cloudletFileSize);
 		this.cloudletOutputSize = Math.max(1, cloudletOutputSize);
 
@@ -384,7 +396,10 @@ public class Cloudlet {
 
 		/** Cloudlet's length finished so far. */
 		public long finishedSoFar = 0;
-
+		
+		/** Cloudlet's Io length finished so far. */
+		public long finishedIopsSoFar = 0;
+		
 		/** a CloudResource id. */
 		public int resourceId = -1;
 
@@ -451,6 +466,23 @@ public class Cloudlet {
 		return true;
 	}
 
+	/**
+	 * Sets the length or size (in IOPS) of this Cloudlet to be executed in a CloudResource.
+	 * @param cloudletLength the length or size (in IOPS) of this Cloudlet to be executed in a
+	 *            CloudResource
+	 * @return <tt>true</tt> if it is successful, <tt>false</tt> otherwise
+	 * @pre cloudletLength > 0
+	 * @post $none
+	 */
+	public boolean setCloudletIopsLength(final long cloudletIopsLength) {
+		if (cloudletIopsLength <= 0) {
+			return false;
+		}
+
+		this.cloudletIopsLength = cloudletIopsLength;
+		return true;
+	}
+	
 	/**
 	 * Sets the network service level for sending this cloudlet over a network.
 	 * 
@@ -600,6 +632,29 @@ public class Cloudlet {
 	}
 
 	/**
+	 * Gets the length of this Cloudlet's IOPS that has been executed so far from the latest CloudResource.
+	 * This method is useful when trying to move this Cloudlet into different CloudResources or to
+	 * cancel it.
+	 * 
+	 * @return the length of a partially executed Cloudlet in IOPS or the full Cloudlet length if it is
+	 *         completed
+	 * @pre $none
+	 * @post $result >= 0.0
+	 */
+	public long getCloudletIopsFinishedSoFar() {
+		if (index == -1) {
+			return cloudletIopsLength;
+		}
+
+		final long finish = resList.get(index).finishedIopsSoFar;
+		if (finish > cloudletIopsLength) {
+			return cloudletIopsLength;
+		}
+
+		return finish;
+	}
+
+	/**
 	 * Checks whether this Cloudlet has finished execution or not.
 	 * 
 	 * @return <tt>true</tt> if this Cloudlet has finished execution, <tt>false</tt> otherwise
@@ -615,8 +670,10 @@ public class Cloudlet {
 
 		// if result is 0 or -ve then this Cloudlet has finished
 		final long finish = resList.get(index).finishedSoFar;
+		final long finishIops = resList.get(index).finishedIopsSoFar;
 		final long result = cloudletLength - finish;
-		if (result <= 0.0) {
+		final long resultIops = cloudletIopsLength - finishIops;
+		if (result <= 0.0 && resultIops <= 0.0) {
 			completed = true;
 		}
 		return completed;
@@ -644,6 +701,31 @@ public class Cloudlet {
 
 		if (record) {
 			write("Sets the length's finished so far to " + length);
+		}
+	}
+
+	/**
+	 * Sets the Iops of this Cloudlet that has been executed so far. This method is used by
+	 * ResCloudlet class when an application is decided to cancel or to move this Cloudlet into
+	 * different CloudResources.
+	 * 
+	 * @param length length of this Cloudlet
+	 * @see gridsim.AllocPolicy
+	 * @see gridsim.ResCloudlet
+	 * @pre length >= 0.0
+	 * @post $none
+	 */
+	public void setCloudletIopsFinishedSoFar(final long length) {
+		// if length is -ve then ignore
+		if (length < 0.0 || index < 0) {
+			return;
+		}
+
+		final Resource res = resList.get(index);
+		res.finishedIopsSoFar = length;
+
+		if (record) {
+			write("Sets the IOPS's finished so far to " + length);
 		}
 	}
 
@@ -955,6 +1037,17 @@ public class Cloudlet {
 	}
 
 	/**
+	 * Gets the length of this Cloudlet in IOPS.
+	 * 
+	 * @return the length of this Cloudlet in IOPS
+	 * @pre $none
+	 * @post $result >= 0.0
+	 */
+	public long getCloudletIopsLength() {
+		return cloudletIopsLength;
+	}
+	
+	/**
 	 * Gets the total length (across all PEs) of this Cloudlet.
 	 * 
 	 * @return the total length of this Cloudlet
@@ -1084,6 +1177,25 @@ public class Cloudlet {
 		Resource resource = getResourceById(resId);
 		if (resource != null) {
 			return resource.finishedSoFar;
+		}
+		return 0;
+	}
+
+	/**
+	 * Gets the IOPS of this Cloudlet that has been executed so far in a given CloudResource ID.
+	 * This method is useful when trying to move this Cloudlet into different CloudResources or to
+	 * cancel it.
+	 * 
+	 * @param resId a CloudResource entity ID
+	 * @return the remaining IOPS of a partially executed Cloudlet or the full Cloudlet IOPS if it is
+	 *         completed or <tt>0.0</tt> if not found
+	 * @pre resId >= 0
+	 * @post $result >= 0.0
+	 */
+	public long getCloudletIopsFinishedSoFar(final int resId) {
+		Resource resource = getResourceById(resId);
+		if (resource != null) {
+			return resource.finishedIopsSoFar;
 		}
 		return 0;
 	}

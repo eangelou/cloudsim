@@ -70,6 +70,8 @@ public class AppCloudlet {
 	public void createCloudletList(List<Integer> vmIdList) {
 		for (int i = 0; i < numbervm; i++) {
 			long length = 4;
+			//TODO check iopsLength
+			long iopsLength = 10;
 			long fileSize = 300;
 			long outputSize = 300;
 			long memory = 256;
@@ -79,6 +81,7 @@ public class AppCloudlet {
 			NetworkCloudlet cl = new NetworkCloudlet(
 					NetworkConstants.currentCloudletId,
 					length,
+					iopsLength,
 					pesNumber,
 					fileSize,
 					outputSize,
