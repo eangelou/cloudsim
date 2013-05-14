@@ -80,6 +80,7 @@ public class Host {
 			List<? extends Pe> peList,
 			VmScheduler vmScheduler) {
 		setId(id);
+		setIoProvisioner(ioProvisioner);
 		setRamProvisioner(ramProvisioner);
 		setBwProvisioner(bwProvisioner);
 		setStorage(storage);
@@ -112,9 +113,10 @@ public class Host {
 	}
 
 	public double getIopsAllocatedToEachVm() {
-		//double iops = (((double) ioProvisioner.getIoBw())/(getVmList().size()));
-		//return (iops > 150000) ? 150000 : iops;
-		return 10;
+		double iops = Math.round((((double) ioProvisioner.getIoBw())/(getVmList().size())));
+		System.out.println("iops = " + iops);
+		return (iops > ioProvisioner.getIoBw()) ? ioProvisioner.getIoBw() : iops;
+//		return 10;
 	}
 	
 	/**
@@ -473,6 +475,24 @@ public class Host {
 	 */
 	protected void setRamProvisioner(RamProvisioner ramProvisioner) {
 		this.ramProvisioner = ramProvisioner;
+	}
+	
+	/**
+	 * Gets the io provisioner.
+	 * 
+	 * @return the io provisioner
+	 */
+	public IoProvisioner getIoProvisioner() {
+		return ioProvisioner;
+	}
+
+	/**
+	 * Sets the ram provisioner.
+	 * 
+	 * @param ramProvisioner the new ram provisioner
+	 */
+	protected void setIoProvisioner(IoProvisioner ioProvisioner) {
+		this.ioProvisioner = ioProvisioner;
 	}
 
 	/**

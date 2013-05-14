@@ -59,7 +59,7 @@ public class CloudSimExample8 {
 		long size = 10000; //image size (MB)
 		int ram = 512; //vm memory (MB)
 		int mips = 250;
-		int iops = 10;
+		int iops = 50;
 		long bw = 1000;
 		int pesNumber = 1; //number of cpus
 		String vmm = "Xen"; //VMM name
@@ -82,7 +82,7 @@ public class CloudSimExample8 {
 
 		//cloudlet parameters
 		long length = 40000;
-		long iopsLength = 1000000;
+		long iopsLength = 100;
 		long fileSize = 300;
 		long outputSize = 300;
 		int pesNumber = 1;
@@ -124,15 +124,15 @@ public class CloudSimExample8 {
 			// Second step: Create Datacenters
 			//Datacenters are the resource providers in CloudSim. We need at list one of them to run a CloudSim simulation
 			Datacenter datacenter0 = createDatacenter("Datacenter_0");
-			Datacenter datacenter1 = createDatacenter("Datacenter_1");
+//			Datacenter datacenter1 = createDatacenter("Datacenter_1");
 
 			//Third step: Create Broker
 			DatacenterBroker broker = createBroker("Broker_0");
 			int brokerId = broker.getId();
 
 			//Fourth step: Create VMs and Cloudlets and send them to broker
-			vmList = createVM(brokerId, 5, 0); //creating 5 vms
-			cloudletList = createCloudlet(brokerId, 10, 0); // creating 10 cloudlets
+			vmList = createVM(brokerId, 20, 0); //creating 5 vms
+			cloudletList = createCloudlet(brokerId, 50, 0); // creating 10 cloudlets
 
 			broker.submitVmList(vmList);
 			broker.submitCloudletList(cloudletList);
@@ -150,7 +150,7 @@ public class CloudSimExample8 {
 
 			//Print the debt of each user to each datacenter
 			datacenter0.printDebts();
-			datacenter1.printDebts();
+//			datacenter1.printDebts();
 
 			Log.printLine("CloudSimExample8 finished!");
 		}
@@ -191,7 +191,7 @@ public class CloudSimExample8 {
 		//4. Create Hosts with its id and list of PEs and add them to the list of machines
 		int hostId=0;
 		int ram = 16384; //host memory (MB)
-		int iops = 10000;
+		int iops = 400; //HDD RAID
 		long storage = 1000000; //host storage
 		int bw = 10000;
 
