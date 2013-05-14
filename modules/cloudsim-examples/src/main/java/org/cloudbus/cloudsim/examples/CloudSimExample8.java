@@ -58,9 +58,9 @@ public class CloudSimExample8 {
 		//VM Parameters
 		long size = 10000; //image size (MB)
 		int ram = 512; //vm memory (MB)
-		int mips = 250;
-		int iops = 50;
-		long bw = 1000;
+		int mips = 250; // 1/4 of a core = 25% CPU (averages are bad - see utilization models) 
+		int iops = 50; // typical
+		long bw = 1000; //1MBps (averages are bad - see utilization models)
 		int pesNumber = 1; //number of cpus
 		String vmm = "Xen"; //VMM name
 
@@ -190,10 +190,10 @@ public class CloudSimExample8 {
 
 		//4. Create Hosts with its id and list of PEs and add them to the list of machines
 		int hostId=0;
-		int ram = 16384; //host memory (MB)
+		int ram = 49152; //host memory (MB)
 		int iops = 400; //HDD RAID
 		long storage = 1000000; //host storage
-		int bw = 10000;
+		int bw = 1000000; // gigabit
 
 		hostList.add(
     			new Host(
