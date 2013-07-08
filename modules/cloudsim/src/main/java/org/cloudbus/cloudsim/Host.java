@@ -33,9 +33,6 @@ public class Host {
 
 	/** The storage. */
 	private long storage;
-	
-	/** The Io provisioner */
-	private IoProvisioner ioProvisioner;
 
 	/** The ram provisioner. */
 	private RamProvisioner ramProvisioner;
@@ -73,14 +70,12 @@ public class Host {
 	 */
 	public Host(
 			int id,
-			IoProvisioner ioProvisioner,
 			RamProvisioner ramProvisioner,
 			BwProvisioner bwProvisioner,
 			long storage,
 			List<? extends Pe> peList,
 			VmScheduler vmScheduler) {
 		setId(id);
-		setIoProvisioner(ioProvisioner);
 		setRamProvisioner(ramProvisioner);
 		setBwProvisioner(bwProvisioner);
 		setStorage(storage);
@@ -101,9 +96,15 @@ public class Host {
 	 */
 	public double updateVmsProcessing(double currentTime) {
 		double smallerTime = Double.MAX_VALUE;
-
+/**		System.out.println("Host: " + this.id +
+				"\tTotal IOPS: " + this.ioProvisioner.getIoBw() +
+				"\tAvailable IOPS: " + this.ioProvisioner.getAvailableIoBw() +
+				"\tUsed IOPS: " + this.ioProvisioner.getUsedIoBw() +
+				"\tNumber of Vms: " + getVmList().size());
+*/
 		for (Vm vm : getVmList()) {
-			double time = vm.updateVmProcessing(currentTime, getVmScheduler().getAllocatedMipsForVm(vm), getIopsAllocatedToEachVm());
+			VmScheduler scheduler = getVmScheduler();
+			double time = vm.updateVmProcessing(currentTime, scheduler.getAllocatedMipsForVm(vm), scheduler.getAllocatedIopsForVm(vm));
 			if (time > 0.0 && time < smallerTime) {
 				smallerTime = time;
 			}
@@ -112,13 +113,13 @@ public class Host {
 		return smallerTime;
 	}
 
-	public double getIopsAllocatedToEachVm() {
+/*	public double getIopsAllocatedToEachVm() {
 		double iops = Math.round((((double) ioProvisioner.getIoBw())/(getVmList().size())));
-		System.out.println("iops = " + iops);
+		//System.out.println("iops = " + iops);
 		return (iops > ioProvisioner.getIoBw()) ? ioProvisioner.getIoBw() : iops;
 //		return 10;
 	}
-	
+*/	
 	/**
 	 * Adds the migrating in vm.
 	 * 
@@ -234,9 +235,18 @@ public class Host {
 			return false;
 		}
 
+		if (!getVmScheduler().allocateIopsForVm(vm, vm.getCurrentRequestedIoBw())) {
+			Log.printLine("[VmScheduler.vmCreate] Allocation of VM #" + vm.getId() + " to Host #" + getId()
+					+ "failed by IOPS");
+			getRamProvisioner().deallocateRamForVm(vm);
+			getBwProvisioner().deallocateBwForVm(vm);
+			return false;
+		}
+		
 		if (!getVmScheduler().allocatePesForVm(vm, vm.getCurrentRequestedMips())) {
 			Log.printLine("[VmScheduler.vmCreate] Allocation of VM #" + vm.getId() + " to Host #" + getId()
 					+ " failed by MIPS");
+			getVmScheduler().deallocateIopsForVm(vm);
 			getRamProvisioner().deallocateRamForVm(vm);
 			getBwProvisioner().deallocateBwForVm(vm);
 			return false;
@@ -477,11 +487,11 @@ public class Host {
 		this.ramProvisioner = ramProvisioner;
 	}
 	
-	/**
+/*	/**
 	 * Gets the io provisioner.
 	 * 
 	 * @return the io provisioner
-	 */
+	 *
 	public IoProvisioner getIoProvisioner() {
 		return ioProvisioner;
 	}
@@ -490,11 +500,11 @@ public class Host {
 	 * Sets the ram provisioner.
 	 * 
 	 * @param ramProvisioner the new ram provisioner
-	 */
+	 *
 	protected void setIoProvisioner(IoProvisioner ioProvisioner) {
 		this.ioProvisioner = ioProvisioner;
 	}
-
+*/
 	/**
 	 * Gets the bw provisioner.
 	 * 

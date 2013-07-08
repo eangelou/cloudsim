@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.cloudbus.cloudsim.lists.PeList;
+import org.cloudbus.cloudsim.provisioners.IoProvisioner;
 
 /**
  * VmScheduler is an abstract class that represents the policy used by a VMM to share processing
@@ -35,7 +36,13 @@ public abstract class VmScheduler {
 
 	/** The total available mips. */
 	private double availableMips;
-
+	
+	/** Host's ioProvisioner */
+	private IoProvisioner ioProvisioner;
+	
+	/** The IOPS that are currently allocated to the VMs. */
+	private Map<String, Double> iopsMap;
+	
 	/** The VMs migrating in. */
 	private List<String> vmsMigratingIn;
 
@@ -49,10 +56,12 @@ public abstract class VmScheduler {
 	 * @pre peList != $null
 	 * @post $none
 	 */
-	public VmScheduler(List<? extends Pe> pelist) {
+	public VmScheduler(List<? extends Pe> pelist, IoProvisioner ioProvisioner) {
 		setPeList(pelist);
 		setPeMap(new HashMap<String, List<Pe>>());
 		setMipsMap(new HashMap<String, List<Double>>());
+		setIoProvisioner(ioProvisioner);
+		setIopsMap(new HashMap<String, Double>());
 		setAvailableMips(PeList.getTotalMips(getPeList()));
 		setVmsMigratingIn(new ArrayList<String>());
 		setVmsMigratingOut(new ArrayList<String>());
@@ -112,6 +121,15 @@ public abstract class VmScheduler {
 	 */
 	public List<Double> getAllocatedMipsForVm(Vm vm) {
 		return getMipsMap().get(vm.getUid());
+	}
+	
+	/**
+	 * Return the IOPS share that is allocated to a given VM.
+	 * @param vm the vm
+	 * @return the IOPS share that is available to the VM
+	 */
+	public Double getAllocatedIopsForVm(Vm vm){
+		return getIopsMap().get(vm.getUid());
 	}
 
 	/**
@@ -195,6 +213,17 @@ public abstract class VmScheduler {
 	protected Map<String, List<Double>> getMipsMap() {
 		return mipsMap;
 	}
+	
+
+	/**
+	 * Gets the iops map.
+	 * 
+	 * @return the iops map
+	 */
+	protected Map<String, Double> getIopsMap() {
+		return iopsMap;
+	}
+
 
 	/**
 	 * Sets the mips map.
@@ -205,6 +234,57 @@ public abstract class VmScheduler {
 		this.mipsMap = mipsMap;
 	}
 
+	/**
+	 * Gets the available iops
+	 */
+	public int getIops(){
+		return ioProvisioner.getIoBw();
+	}
+/*	
+	/**
+	 * Sets the available iops
+	 * 
+	 * @param iops the available iops
+	 *
+	protected void setIops(Double iops){
+		this.iops = iops;
+	}
+*/	
+	/**
+	 * Gets the currently available iops
+	 */
+	public int getAvailableIops(){
+		return ioProvisioner.getAvailableIoBw();
+	}
+/*	
+	/**
+	 * Sets the currently available iops
+	 * 
+	 * @param iops the currently available iops
+	 *
+	protected void setAvailableIops(Double iops){
+		this.availableIops = iops;
+	}
+*/	
+
+	/**
+	 * Sets the ioProvisioner.
+	 * 
+	 * @param ioProvisioner the ioProvisioner
+	 */
+	protected void setIoProvisioner(IoProvisioner ioProvisioner) {
+		this.ioProvisioner = ioProvisioner;
+	}
+	
+	/**
+	 * Sets the iops map.
+	 * 
+	 * @param iopsMap the iops map
+	 */
+	protected void setIopsMap(Map<String, Double> iopsMap) {
+		this.iopsMap = iopsMap;
+	}
+	
 	/**
 	 * Gets the free mips.
 	 * 
@@ -275,6 +355,25 @@ public abstract class VmScheduler {
 	 */
 	protected void setPeMap(Map<String, List<Pe>> peMap) {
 		this.peMap = peMap;
+	}
+
+	public boolean allocateIopsForVm(Vm vm, Double currentRequestedIoBw) {
+		int numOfVms;
+		if(iopsMap.get(vm.getUid()) != null){
+			numOfVms = iopsMap.size();
+		} else {
+			iopsMap.put(vm.getUid(), 0.0);
+			numOfVms = iopsMap.size() + 1;
+		}
+		Double iopsShare = ioProvisioner.getIoBw() /((double) numOfVms); 
+		for (String vmId : iopsMap.keySet()) {
+			iopsMap.put(vmId, iopsShare);
+		}
+		return true;
+	}
+	
+	public void deallocateIopsForVm(Vm vm){
+		getIopsMap().remove(vm.getUid());
 	}
 
 }

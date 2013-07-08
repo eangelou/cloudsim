@@ -198,12 +198,11 @@ public class CloudSimExample8 {
 		hostList.add(
     			new Host(
     				hostId,
-    				new IoProvisionerSimple(iops),
     				new RamProvisionerSimple(ram),
     				new BwProvisionerSimple(bw),
     				storage,
     				peList1,
-    				new VmSchedulerTimeShared(peList1)
+    				new VmSchedulerTimeShared(peList1, new IoProvisionerSimple(iops))
     			)
     		); // This is our first machine
 
@@ -212,12 +211,11 @@ public class CloudSimExample8 {
 		hostList.add(
     			new Host(
     				hostId,
-    				new IoProvisionerSimple(iops),
     				new RamProvisionerSimple(ram),
     				new BwProvisionerSimple(bw),
     				storage,
     				peList2,
-    				new VmSchedulerTimeShared(peList2)
+    				new VmSchedulerTimeShared(peList1, new IoProvisionerSimple(iops))
     			)
     		); // Second machine
 

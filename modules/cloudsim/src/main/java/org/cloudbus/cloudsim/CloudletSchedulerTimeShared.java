@@ -68,25 +68,27 @@ public class CloudletSchedulerTimeShared extends CloudletScheduler {
 		setCurrentIopsShare(iopsShare);
 		double timeSpam = currentTime - getPreviousTime();
 		
+		System.out.println("Time: " + currentTime + "\tiopsShare= " + iopsShare + "\tlist size= " + getCloudletExecList().size());
 		long iopsCapacity = (long) (iopsShare / getCloudletExecList().size());
-//		System.err.println("iopsShare= " + iopsShare + "\nlist size= " + getCloudletExecList().size());
-		System.err.println("iopsCapacity= " + iopsCapacity);
+//		System.err.println("iopsCapacity= " + iopsCapacity);
 
 		for (ResCloudlet rcl : getCloudletExecList()) {
-
-/*			System.err.println(rcl.getCloudletId() + ") RemainingIops= " + rcl.getRemainingIopsCloudletLength());
-			System.err.println(rcl.getCloudletId() + ") IopsFinishedSoFar= " + rcl.getCloudlet().getCloudletIopsFinishedSoFar());
-			System.err.println(rcl.getCloudletId() + ") Iops To remove= " + ((long) (iopsCapacity * timeSpam)));
-			System.err.println(rcl.getCloudletId() + ") RemainingMips= " + rcl.getRemainingCloudletLength());
-			System.err.println(rcl.getCloudletId() + ") MipsFinishedSoFar= " + rcl.getCloudlet().getCloudletFinishedSoFar());
-			System.err.println(rcl.getCloudletId() + ") Mips To remove= " + ((long) (getCapacity(mipsShare) * timeSpam * rcl.getNumberOfPes() * Consts.MILLION)));
-			System.err.println(rcl.getCloudletId() + ") Timespan= " + timeSpam);
+			System.out.println(rcl.getCloudletId() + ") RemainingIops= " + rcl.getRemainingIopsCloudletLength() 
+					+ "\tIopsFinishedSoFar= " + rcl.getCloudlet().getCloudletIopsFinishedSoFar()
+					+ "\tIops To remove= " + ((long) (iopsCapacity * timeSpam))
+					+ "\tRemainingMips= " + rcl.getRemainingCloudletLength()
+					+ "\tMipsFinishedSoFar= " + rcl.getCloudlet().getCloudletFinishedSoFar()
+					+ "\tMips To remove= " + ((long) (getCapacity(mipsShare) * timeSpam * rcl.getNumberOfPes() * Consts.MILLION))
+					+ "\tTimespan= " + timeSpam);
+			System.out.flush();
+		/*
 			try {
 				System.in.read();
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
-			}*/
+			}
+		*/
 			//TODO gspilio: maybe iops should be timeShared too
 			rcl.updateCloudletIopsFinishedSoFar((long) (iopsCapacity * timeSpam));
 			rcl.updateCloudletFinishedSoFar((long) (getCapacity(mipsShare) * timeSpam * rcl.getNumberOfPes() * Consts.MILLION));

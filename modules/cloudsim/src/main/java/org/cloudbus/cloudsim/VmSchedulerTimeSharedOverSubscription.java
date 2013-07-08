@@ -14,6 +14,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import org.cloudbus.cloudsim.lists.PeList;
+import org.cloudbus.cloudsim.provisioners.IoProvisioner;
 
 /**
  * This is a Time-Shared VM Scheduler, which allows over-subscription. In other words, the scheduler
@@ -31,8 +32,8 @@ public class VmSchedulerTimeSharedOverSubscription extends VmSchedulerTimeShared
 	 * 
 	 * @param pelist the pelist
 	 */
-	public VmSchedulerTimeSharedOverSubscription(List<? extends Pe> pelist) {
-		super(pelist);
+	public VmSchedulerTimeSharedOverSubscription(List<? extends Pe> pelist, IoProvisioner ioProvisioner) {
+		super(pelist, ioProvisioner);
 	}
 
 	/**

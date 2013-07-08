@@ -14,6 +14,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import org.cloudbus.cloudsim.provisioners.IoProvisioner;
+
 /**
  * VmSchedulerSpaceShared is a VMM allocation policy that allocates one or more Pe to a VM, and
  * doesn't allow sharing of PEs. If there is no free PEs to the VM, allocation fails. Free PEs are
@@ -36,8 +38,8 @@ public class VmSchedulerSpaceShared extends VmScheduler {
 	 * 
 	 * @param pelist the pelist
 	 */
-	public VmSchedulerSpaceShared(List<? extends Pe> pelist) {
-		super(pelist);
+	public VmSchedulerSpaceShared(List<? extends Pe> pelist, IoProvisioner ioProvisioner) {
+		super(pelist, ioProvisioner);
 		setPeAllocationMap(new HashMap<String, List<Pe>>());
 		setFreePes(new ArrayList<Pe>());
 		getFreePes().addAll(pelist);

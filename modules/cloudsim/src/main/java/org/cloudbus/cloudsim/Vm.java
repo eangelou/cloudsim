@@ -151,6 +151,7 @@ public class Vm {
 	 */
 	public double updateVmProcessing(double currentTime, List<Double> mipsShare, Double iopsShare) {
 		if (mipsShare != null) {
+			System.err.println("Vm id: " + this.id);
 			return getCloudletScheduler().updateVmProcessing(currentTime, mipsShare, iopsShare);
 		}
 		return 0.0;
@@ -649,6 +650,13 @@ public class Vm {
 			}
 		}
 		getStateHistory().add(newState);
+	}
+
+	public Double getCurrentRequestedIoBw() {
+		if (isBeingInstantiated()) {
+			return getIops();
+		}
+		return (getCloudletScheduler().getCurrentRequestedUtilizationOfIops() * getIops());
 	}
 
 }

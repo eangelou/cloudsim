@@ -278,4 +278,8 @@ public abstract class CloudletScheduler {
 		return currentIopsShare;
 	}
 
+	public double getCurrentRequestedUtilizationOfIops() {
+		return 1.0;
+	}
+
 }

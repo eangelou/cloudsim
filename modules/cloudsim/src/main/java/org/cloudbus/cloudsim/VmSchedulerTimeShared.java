@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.cloudbus.cloudsim.lists.PeList;
+import org.cloudbus.cloudsim.provisioners.IoProvisioner;
 import org.cloudbus.cloudsim.provisioners.PeProvisioner;
 
 /**
@@ -39,8 +40,8 @@ public class VmSchedulerTimeShared extends VmScheduler {
 	 * 
 	 * @param pelist the pelist
 	 */
-	public VmSchedulerTimeShared(List<? extends Pe> pelist) {
-		super(pelist);
+	public VmSchedulerTimeShared(List<? extends Pe> pelist, IoProvisioner ioProvisioner) {
+		super(pelist, ioProvisioner);
 		setMipsMapRequested(new HashMap<String, List<Double>>());
 	}
 
