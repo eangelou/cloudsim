@@ -17,6 +17,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.cloudbus.cloudsim.Cloudlet;
+import org.cloudbus.cloudsim.CloudletSchedulerSpaceShared;
 import org.cloudbus.cloudsim.CloudletSchedulerTimeShared;
 import org.cloudbus.cloudsim.Datacenter;
 import org.cloudbus.cloudsim.DatacenterBroker;
@@ -68,7 +69,7 @@ public class CloudSimExample8 {
 		Vm[] vm = new Vm[vms];
 
 		for(int i=0;i<vms;i++){
-			vm[i] = new Vm(idShift + i, userId, mips, iops, pesNumber, ram, bw, size, vmm, new CloudletSchedulerTimeShared());
+			vm[i] = new Vm(idShift + i, userId, mips, iops, pesNumber, ram, bw, size, vmm, new CloudletSchedulerSpaceShared());
 			list.add(vm[i]);
 		}
 
@@ -87,11 +88,12 @@ public class CloudSimExample8 {
 		long outputSize = 300;
 		int pesNumber = 1;
 		UtilizationModel utilizationModel = new UtilizationModelFull();
-
+		UtilizationModel utilizationModelMips = new UtilizationModelFull(0.9);
+		
 		Cloudlet[] cloudlet = new Cloudlet[cloudlets];
 
 		for(int i=0;i<cloudlets;i++){
-			cloudlet[i] = new Cloudlet(idShift + i, length, iopsLength, pesNumber, fileSize, outputSize, utilizationModel, utilizationModel, utilizationModel);
+			cloudlet[i] = new Cloudlet(idShift + i, length, iopsLength, pesNumber, fileSize, outputSize, utilizationModelMips, utilizationModel, utilizationModel);
 			// setting the owner of these Cloudlets
 			cloudlet[i].setUserId(userId);
 			list.add(cloudlet[i]);
@@ -131,8 +133,8 @@ public class CloudSimExample8 {
 			int brokerId = broker.getId();
 
 			//Fourth step: Create VMs and Cloudlets and send them to broker
-			vmList = createVM(brokerId, 20, 0); //creating 5 vms
-			cloudletList = createCloudlet(brokerId, 50, 0); // creating 10 cloudlets
+			vmList = createVM(brokerId, 20, 0); //creating 20 vms
+			cloudletList = createCloudlet(brokerId, 50, 0); // creating 50 cloudlets
 
 			broker.submitVmList(vmList);
 			broker.submitCloudletList(cloudletList);

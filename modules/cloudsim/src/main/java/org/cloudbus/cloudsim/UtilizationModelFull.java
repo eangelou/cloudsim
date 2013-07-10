@@ -21,9 +21,19 @@ public class UtilizationModelFull implements UtilizationModel {
 	 * (non-Javadoc)
 	 * @see cloudsim.power.UtilizationModel#getUtilization(double)
 	 */
+	private double utilization = 1.0;
+	
+	public UtilizationModelFull(double utilization){
+		this.utilization = utilization;
+	}
+	
+	public UtilizationModelFull()
+	{
+		this.utilization = 1.0;
+	}
 	@Override
 	public double getUtilization(double time) {
-		return 1;
+		return this.utilization;
 	}
 
 }
