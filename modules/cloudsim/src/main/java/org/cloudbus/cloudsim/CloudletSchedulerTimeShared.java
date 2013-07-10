@@ -78,7 +78,7 @@ public class CloudletSchedulerTimeShared extends CloudletScheduler {
 					+ "\tIops To remove= " + ((long) (iopsCapacity * timeSpam))
 					+ "\tRemainingMips= " + rcl.getRemainingCloudletLength()
 					+ "\tMipsFinishedSoFar= " + rcl.getCloudlet().getCloudletFinishedSoFar()
-					+ "\tMips To remove= " + ((long) (getCapacity(mipsShare) * timeSpam * rcl.getNumberOfPes() * Consts.MILLION))
+					+ "\tMips To remove= " + ((long) (getCapacity(mipsShare) * timeSpam * rcl.getNumberOfPes()))
 					+ "\tTimespan= " + timeSpam);
 			System.out.flush();
 		/*
