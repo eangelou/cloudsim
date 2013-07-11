@@ -117,7 +117,139 @@ public class Datacenter extends SimEntity {
 	protected void registerOtherEntity() {
 		// empty. This should be override by a child class
 	}
+	
+	private void printEventTag(SimEvent ev){
+		
+		System.out.print("#####################################");
+		
+		switch (ev.getTag()) {
+			case CloudSimTags.RESOURCE_CHARACTERISTICS:
+				System.out.print("Resource Charasteristics");
+				break;
+	
+			// Resource dynamic info inquiry
+			case CloudSimTags.RESOURCE_DYNAMICS:
+				System.out.print("Resource Dynamics");
+				break;
+	
+			case CloudSimTags.RESOURCE_NUM_PE:
+				System.out.print("Resource Num PE");
+				break;
+	
+			case CloudSimTags.RESOURCE_NUM_FREE_PE:
+				System.out.print("Resource Num Free PE");
+				break;
+	
+			// New Cloudlet arrives
+			case CloudSimTags.CLOUDLET_SUBMIT:
+				System.out.print("Cloudlet Submit");
+				break;
+	
+			// New Cloudlet arrives, but the sender asks for an ack
+			case CloudSimTags.CLOUDLET_SUBMIT_ACK:
+				System.out.print("Cloudlet Submit Ack");
+				break;
+	
+			// Cancels a previously submitted Cloudlet
+			case CloudSimTags.CLOUDLET_CANCEL:
+				System.out.print("Cloudlet Cancel");
+				break;
+	
+			// Pauses a previously submitted Cloudlet
+			case CloudSimTags.CLOUDLET_PAUSE:
+				System.out.print("Cloudlet Pause");
+				break;
+	
+			// Pauses a previously submitted Cloudlet, but the sender
+			// asks for an acknowledgement
+			case CloudSimTags.CLOUDLET_PAUSE_ACK:
+				System.out.print("Cloudlet Pause Ack");
+				break;
+	
+			// Resumes a previously submitted Cloudlet
+			case CloudSimTags.CLOUDLET_RESUME:
+				System.out.print("Cloudlet Resume");
+				break;
+	
+			// Resumes a previously submitted Cloudlet, but the sender
+			// asks for an acknowledgement
+			case CloudSimTags.CLOUDLET_RESUME_ACK:
+				System.out.print("Cloudlet Resume Ack");
+				break;
+	
+			// Moves a previously submitted Cloudlet to a different resource
+			case CloudSimTags.CLOUDLET_MOVE:
+				System.out.print("Cloudlet Move");
+				break;
+	
+			// Moves a previously submitted Cloudlet to a different resource
+			case CloudSimTags.CLOUDLET_MOVE_ACK:
+				System.out.print("Cloudlet Move Ack");
+				break;
+	
+			// Checks the status of a Cloudlet
+			case CloudSimTags.CLOUDLET_STATUS:
+				System.out.print("Cloudlet Status");
+				break;
+	
+			// Ping packet
+			case CloudSimTags.INFOPKT_SUBMIT:
+				System.out.print("Infopkt Submit (ping packet)");
+				break;
+	
+			case CloudSimTags.VM_CREATE:
+				System.out.print("Vm Create");
+				break;
+	
+			case CloudSimTags.VM_CREATE_ACK:
+				System.out.print("Vm Create Ack");
+				break;
+	
+			case CloudSimTags.VM_DESTROY:
+				System.out.print("Vm Destroy");
+				break;
+	
+			case CloudSimTags.VM_DESTROY_ACK:
+				System.out.print("Vm Destroy Ack");
+				break;
+	
+			case CloudSimTags.VM_MIGRATE:
+				System.out.print("Vm Migrate");
+				break;
+	
+			case CloudSimTags.VM_MIGRATE_ACK:
+				System.out.print("Vm Migrate Ack");
+				break;
+	
+			case CloudSimTags.VM_DATA_ADD:
+				System.out.print("Vm Data Add");
+				break;
+	
+			case CloudSimTags.VM_DATA_ADD_ACK:
+				System.out.print("Vm Data Add Ack");
+				break;
+	
+			case CloudSimTags.VM_DATA_DEL:
+				System.out.print("Vm Data Del");
+				break;
+	
+			case CloudSimTags.VM_DATA_DEL_ACK:
+				System.out.print("Vm Data Del Ack");
+				break;
+	
+			case CloudSimTags.VM_DATACENTER_EVENT:
+				System.out.print("Vm Datacenter Event");
+				break;
+	
+			// other unknown tags are processed by this method
+			default:
+				System.out.print("Unknown event");
+				break;
+		}
 
+		System.out.println("#####################################");
+	}
+	
 	/**
 	 * Processes events or services that are available for this PowerDatacenter.
 	 * 
@@ -129,6 +261,8 @@ public class Datacenter extends SimEntity {
 	public void processEvent(SimEvent ev) {
 		int srcId = -1;
 
+		printEventTag(ev);
+		
 		switch (ev.getTag()) {
 		// Resource characteristics inquiry
 			case CloudSimTags.RESOURCE_CHARACTERISTICS:

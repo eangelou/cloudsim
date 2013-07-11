@@ -143,6 +143,9 @@ public class Cloudlet {
 	/** The utilization of cpu model. */
 	private UtilizationModel utilizationModelCpu;
 
+	/** The previous utilization of cpu (Used mainly for UtilizationModelStochastic). */
+	private double previousUtilizationCpu = 0.0;
+
 	/** The utilization of memory model. */
 	private UtilizationModel utilizationModelRam;
 
@@ -1575,4 +1578,13 @@ public class Cloudlet {
 		return getUtilizationModelBw().getUtilization(time);
 	}
 
+	
+	public double getPreviousUtilizationCpu() {
+		return previousUtilizationCpu;
+	}
+
+	public void setPreviousUtilizationCpu(double previousUtilizationCpu) {
+		this.previousUtilizationCpu = previousUtilizationCpu;
+	}
+	
 }

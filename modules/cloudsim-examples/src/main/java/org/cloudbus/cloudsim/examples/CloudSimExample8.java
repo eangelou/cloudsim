@@ -28,6 +28,7 @@ import org.cloudbus.cloudsim.Pe;
 import org.cloudbus.cloudsim.Storage;
 import org.cloudbus.cloudsim.UtilizationModel;
 import org.cloudbus.cloudsim.UtilizationModelFull;
+import org.cloudbus.cloudsim.UtilizationModelStochastic;
 import org.cloudbus.cloudsim.Vm;
 import org.cloudbus.cloudsim.VmAllocationPolicySimple;
 import org.cloudbus.cloudsim.VmSchedulerTimeShared;
@@ -88,7 +89,7 @@ public class CloudSimExample8 {
 		long outputSize = 300;
 		int pesNumber = 1;
 		UtilizationModel utilizationModel = new UtilizationModelFull();
-		UtilizationModel utilizationModelMips = new UtilizationModelFull(0.9);
+		UtilizationModel utilizationModelMips = new UtilizationModelStochastic();
 		
 		Cloudlet[] cloudlet = new Cloudlet[cloudlets];
 
