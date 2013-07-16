@@ -47,13 +47,12 @@ public class HostDynamicWorkload extends Host {
 	 */
 	public HostDynamicWorkload(
 			int id,
-			IoProvisioner ioProvisioner,
 			RamProvisioner ramProvisioner,
 			BwProvisioner bwProvisioner,
 			long storage,
 			List<? extends Pe> peList,
 			VmScheduler vmScheduler) {
-		super(id, ioProvisioner, ramProvisioner, bwProvisioner, storage, peList, vmScheduler);
+		super(id, ramProvisioner, bwProvisioner, storage, peList, vmScheduler);
 		setUtilizationMips(0);
 		setPreviousUtilizationMips(0);
 	}
@@ -69,12 +68,17 @@ public class HostDynamicWorkload extends Host {
 		setUtilizationMips(0);
 		double hostTotalRequestedMips = 0;
 
+		
 		for (Vm vm : getVmList()) {
 			getVmScheduler().deallocatePesForVm(vm);
+			getVmScheduler().deallocateIopsForVm(vm);
 		}
 
+		
+		
 		for (Vm vm : getVmList()) {
 			getVmScheduler().allocatePesForVm(vm, vm.getCurrentRequestedMips());
+			getVmScheduler().allocateIopsForVm(vm, vm.getCurrentRequestedIops());
 		}
 
 		for (Vm vm : getVmList()) {
@@ -82,6 +86,17 @@ public class HostDynamicWorkload extends Host {
 			double totalAllocatedMips = getVmScheduler().getTotalAllocatedMipsForVm(vm);
 
 			if (!Log.isDisabled()) {
+				Log.formatLine(
+						"%.2f: [Host #" + getId() + "] Total allocated IOPS for VM #" + vm.getId()
+								+ " (Host #" + vm.getHost().getId()
+								+ ") is %.2f, was requested %.2f out of total %.2f (%.2f%%)",
+						CloudSim.clock(),
+						getVmScheduler().getAllocatedIopsForVm(vm),
+						vm.getCurrentRequestedIops(),
+						vm.getIops(),
+						vm.getCurrentRequestedIops() / vm.getIops() * 100);
+				
+				
 				Log.formatLine(
 						"%.2f: [Host #" + getId() + "] Total allocated MIPS for VM #" + vm.getId()
 								+ " (Host #" + vm.getHost().getId()

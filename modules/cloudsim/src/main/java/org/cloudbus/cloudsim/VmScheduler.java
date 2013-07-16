@@ -39,9 +39,12 @@ public abstract class VmScheduler {
 	
 	/** Host's ioProvisioner */
 	private IoProvisioner ioProvisioner;
-	
+
 	/** The IOPS that are currently allocated to the VMs. */
-	private Map<String, Double> iopsMap;
+	private Map<String, Double> allocatedIopsMap;
+	
+	/** The IOPS that are currently requested by the VMs. */
+	private Map<String, Double> requestedIopsMap;
 	
 	/** The VMs migrating in. */
 	private List<String> vmsMigratingIn;
@@ -61,7 +64,8 @@ public abstract class VmScheduler {
 		setPeMap(new HashMap<String, List<Pe>>());
 		setMipsMap(new HashMap<String, List<Double>>());
 		setIoProvisioner(ioProvisioner);
-		setIopsMap(new HashMap<String, Double>());
+		setAllocatedIopsMap(new HashMap<String, Double>());
+		setRequestedIopsMap(new HashMap<String, Double>());
 		setAvailableMips(PeList.getTotalMips(getPeList()));
 		setVmsMigratingIn(new ArrayList<String>());
 		setVmsMigratingOut(new ArrayList<String>());
@@ -129,7 +133,7 @@ public abstract class VmScheduler {
 	 * @return the IOPS share that is available to the VM
 	 */
 	public Double getAllocatedIopsForVm(Vm vm){
-		return getIopsMap().get(vm.getUid());
+		return getAllocatedIopsMap().get(vm.getUid());
 	}
 
 	/**
@@ -220,8 +224,8 @@ public abstract class VmScheduler {
 	 * 
 	 * @return the iops map
 	 */
-	protected Map<String, Double> getIopsMap() {
-		return iopsMap;
+	protected Map<String, Double> getAllocatedIopsMap() {
+		return allocatedIopsMap;
 	}
 
 
@@ -281,8 +285,8 @@ public abstract class VmScheduler {
 	 * 
 	 * @param iopsMap the iops map
 	 */
-	protected void setIopsMap(Map<String, Double> iopsMap) {
-		this.iopsMap = iopsMap;
+	protected void setAllocatedIopsMap(Map<String, Double> iopsMap) {
+		this.allocatedIopsMap = iopsMap;
 	}
 	
 	/**
@@ -356,24 +360,39 @@ public abstract class VmScheduler {
 	protected void setPeMap(Map<String, List<Pe>> peMap) {
 		this.peMap = peMap;
 	}
-
-	public boolean allocateIopsForVm(Vm vm, Double currentRequestedIoBw) {
+	
+	public boolean allocateIopsForVm(Vm vm, Double currentRequestedIops) {
 		int numOfVms;
-		if(iopsMap.get(vm.getUid()) != null){
-			numOfVms = iopsMap.size();
+		if(allocatedIopsMap.get(vm.getUid()) != null){
+			numOfVms = allocatedIopsMap.size();
 		} else {
-			iopsMap.put(vm.getUid(), 0.0);
-			numOfVms = iopsMap.size() + 1;
+			allocatedIopsMap.put(vm.getUid(), 0.0);
+			requestedIopsMap.put(vm.getUid(), currentRequestedIops);
+			numOfVms = allocatedIopsMap.size() + 1;
 		}
-		Double iopsShare = ioProvisioner.getIoBw() /((double) numOfVms); 
-		for (String vmId : iopsMap.keySet()) {
-			iopsMap.put(vmId, iopsShare);
+		
+		double totalRequestedIops = 0.0;
+		for (String vmId: requestedIopsMap.keySet()) {
+			totalRequestedIops += requestedIopsMap.get(vmId);
+		}
+		Double iopsShare = ioProvisioner.getIoBw() /(totalRequestedIops); 
+		for (String vmId : allocatedIopsMap.keySet()) {
+			allocatedIopsMap.put(vmId, iopsShare * requestedIopsMap.get(vmId));
 		}
 		return true;
 	}
 	
 	public void deallocateIopsForVm(Vm vm){
-		getIopsMap().remove(vm.getUid());
+		getAllocatedIopsMap().remove(vm.getUid());
+		getRequestedIopsMap().remove(vm.getUid());
+	}
+
+	public Map<String, Double> getRequestedIopsMap() {
+		return requestedIopsMap;
+	}
+
+	public void setRequestedIopsMap(Map<String, Double> requestedIopsMap) {
+		this.requestedIopsMap = requestedIopsMap;
 	}
 
 }

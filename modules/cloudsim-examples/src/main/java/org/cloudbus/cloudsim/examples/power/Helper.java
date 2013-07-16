@@ -34,6 +34,7 @@ import org.cloudbus.cloudsim.power.PowerHostUtilizationHistory;
 import org.cloudbus.cloudsim.power.PowerVm;
 import org.cloudbus.cloudsim.power.PowerVmAllocationPolicyMigrationAbstract;
 import org.cloudbus.cloudsim.provisioners.BwProvisionerSimple;
+import org.cloudbus.cloudsim.provisioners.IoProvisioner;
 import org.cloudbus.cloudsim.provisioners.IoProvisionerSimple;
 import org.cloudbus.cloudsim.provisioners.PeProvisionerSimple;
 import org.cloudbus.cloudsim.provisioners.RamProvisionerSimple;
@@ -71,14 +72,14 @@ public class Helper {
 					brokerId,
 					Constants.VM_MIPS[vmType],
 					//TODO gspilio: VM iops not used
-					2000,
+					400,
 					Constants.VM_PES[vmType],
 					Constants.VM_RAM[vmType],
 					Constants.VM_BW,
 					Constants.VM_SIZE,
 					1,
 					"Xen",
-					new CloudletSchedulerDynamicWorkload(Constants.VM_MIPS[vmType], Constants.VM_PES[vmType]),
+					new CloudletSchedulerDynamicWorkload(400, Constants.VM_MIPS[vmType], Constants.VM_PES[vmType]),
 					Constants.SCHEDULING_INTERVAL));
 		}
 		return vms;
@@ -101,6 +102,8 @@ public class Helper {
 				peList.add(new Pe(j, new PeProvisionerSimple(Constants.HOST_MIPS[hostType])));
 			}
 
+			IoProvisioner ioProvisioner = new IoProvisionerSimple(400);
+			
 			hostList.add(new PowerHostUtilizationHistory(
 					i,
 					//TODO gspilio: All hosts have 200000 IOPS
@@ -109,7 +112,7 @@ public class Helper {
 					new BwProvisionerSimple(Constants.HOST_BW),
 					Constants.HOST_STORAGE,
 					peList,
-					new VmSchedulerTimeSharedOverSubscription(peList),
+					new VmSchedulerTimeSharedOverSubscription(peList, ioProvisioner),
 					Constants.HOST_POWER[hostType]));
 		}
 		return hostList;

@@ -59,7 +59,7 @@ public class CloudSimExample8 {
 		long size = 10000; //image size (MB)
 		int ram = 512; //vm memory (MB)
 		int mips = 250; // 1/4 of a core = 25% CPU (averages are bad - see utilization models) 
-		int iops = 50; // typical
+		int iops = 400; // typical
 		long bw = 1000; //1MBps (averages are bad - see utilization models)
 		int pesNumber = 1; //number of cpus
 		String vmm = "Xen"; //VMM name
@@ -91,7 +91,7 @@ public class CloudSimExample8 {
 		Cloudlet[] cloudlet = new Cloudlet[cloudlets];
 
 		for(int i=0;i<cloudlets;i++){
-			cloudlet[i] = new Cloudlet(idShift + i, length, iopsLength, pesNumber, fileSize, outputSize, utilizationModel, utilizationModel, utilizationModel);
+			cloudlet[i] = new Cloudlet(idShift + i, length, iopsLength, pesNumber, fileSize, outputSize, utilizationModel, utilizationModel, utilizationModel, utilizationModel);
 			// setting the owner of these Cloudlets
 			cloudlet[i].setUserId(userId);
 			list.add(cloudlet[i]);

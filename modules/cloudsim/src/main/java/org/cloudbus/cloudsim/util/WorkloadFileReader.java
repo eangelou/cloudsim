@@ -285,6 +285,7 @@ public class WorkloadFileReader implements WorkloadModel {
 				0,
 				utilizationModel,
 				utilizationModel,
+				utilizationModel,
 				utilizationModel);
 		jobs.add(wgl);
 	}

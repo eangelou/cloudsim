@@ -56,7 +56,7 @@ public class PowerHost extends HostDynamicWorkload {
 			List<? extends Pe> peList,
 			VmScheduler vmScheduler,
 			PowerModel powerModel) {
-		super(id, ioProvisioner, ramProvisioner, bwProvisioner, storage, peList, vmScheduler);
+		super(id, ramProvisioner, bwProvisioner, storage, peList, vmScheduler);
 		setPowerModel(powerModel);
 	}
 

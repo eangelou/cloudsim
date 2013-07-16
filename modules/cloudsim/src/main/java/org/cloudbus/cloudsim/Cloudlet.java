@@ -143,6 +143,9 @@ public class Cloudlet {
 	/** The utilization of cpu model. */
 	private UtilizationModel utilizationModelCpu;
 
+	/** The utilization of io model. */
+	private UtilizationModel utilizationModelIo;
+	
 	/** The utilization of memory model. */
 	private UtilizationModel utilizationModelRam;
 
@@ -182,6 +185,7 @@ public class Cloudlet {
 			final long cloudletFileSize,
 			final long cloudletOutputSize,
 			final UtilizationModel utilizationModelCpu,
+			final UtilizationModel utilizationModelIo,
 			final UtilizationModel utilizationModelRam,
 			final UtilizationModel utilizationModelBw) {
 		this(
@@ -192,6 +196,7 @@ public class Cloudlet {
 				cloudletFileSize,
 				cloudletOutputSize,
 				utilizationModelCpu,
+				utilizationModelIo,
 				utilizationModelRam,
 				utilizationModelBw,
 				false);
@@ -233,6 +238,7 @@ public class Cloudlet {
 			final long cloudletFileSize,
 			final long cloudletOutputSize,
 			final UtilizationModel utilizationModelCpu,
+			final UtilizationModel utilizationModelIo,
 			final UtilizationModel utilizationModelRam,
 			final UtilizationModel utilizationModelBw,
 			final boolean record,
@@ -245,6 +251,7 @@ public class Cloudlet {
 				cloudletFileSize,
 				cloudletOutputSize,
 				utilizationModelCpu,
+				utilizationModelIo,
 				utilizationModelRam,
 				utilizationModelBw,
 				record);
@@ -285,6 +292,7 @@ public class Cloudlet {
 			final long cloudletFileSize,
 			final long cloudletOutputSize,
 			final UtilizationModel utilizationModelCpu,
+			final UtilizationModel utilizationModelIo,
 			final UtilizationModel utilizationModelRam,
 			final UtilizationModel utilizationModelBw,
 			final List<String> fileList) {
@@ -296,6 +304,7 @@ public class Cloudlet {
 				cloudletFileSize,
 				cloudletOutputSize,
 				utilizationModelCpu,
+				utilizationModelIo,
 				utilizationModelRam,
 				utilizationModelBw,
 				false);
@@ -336,6 +345,7 @@ public class Cloudlet {
 			final long cloudletFileSize,
 			final long cloudletOutputSize,
 			final UtilizationModel utilizationModelCpu,
+			final UtilizationModel utilizationModelIo,
 			final UtilizationModel utilizationModelRam,
 			final UtilizationModel utilizationModelBw,
 			final boolean record) {
@@ -368,6 +378,7 @@ public class Cloudlet {
 		requiredFiles = new LinkedList<String>();
 
 		setUtilizationModelCpu(utilizationModelCpu);
+		setUtilizationModelIo(utilizationModelIo);
 		setUtilizationModelRam(utilizationModelRam);
 		setUtilizationModelBw(utilizationModelBw);
 	}
@@ -1573,6 +1584,18 @@ public class Cloudlet {
 	 */
 	public double getUtilizationOfBw(final double time) {
 		return getUtilizationModelBw().getUtilization(time);
+	}
+
+	public double getUtilizationOfIo(final double time) {
+		return getUtilizationModelIo().getUtilization(time);
+	}
+
+	public UtilizationModel getUtilizationModelIo() {
+		return utilizationModelIo;
+	}
+
+	public void setUtilizationModelIo(UtilizationModel utilizationModelIo) {
+		this.utilizationModelIo = utilizationModelIo;
 	}
 
 }

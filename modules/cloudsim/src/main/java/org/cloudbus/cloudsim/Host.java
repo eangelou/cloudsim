@@ -235,7 +235,7 @@ public class Host {
 			return false;
 		}
 
-		if (!getVmScheduler().allocateIopsForVm(vm, vm.getCurrentRequestedIoBw())) {
+		if (!getVmScheduler().allocateIopsForVm(vm, vm.getCurrentRequestedIops())) {
 			Log.printLine("[VmScheduler.vmCreate] Allocation of VM #" + vm.getId() + " to Host #" + getId()
 					+ "failed by IOPS");
 			getRamProvisioner().deallocateRamForVm(vm);

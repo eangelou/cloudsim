@@ -13,6 +13,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.cloudbus.cloudsim.core.CloudSim;
+
 /**
  * CloudletSchedulerDynamicWorkload implements a policy of scheduling performed by a virtual machine
  * assuming that there is just one cloudlet which is working as an online service.
@@ -30,6 +32,8 @@ public class CloudletSchedulerDynamicWorkload extends CloudletSchedulerTimeShare
 
 	/** The total mips. */
 	private double totalMips;
+	
+	private double iops;
 
 	/** The under allocated mips. */
 	private Map<String, Double> underAllocatedMips;
@@ -39,6 +43,9 @@ public class CloudletSchedulerDynamicWorkload extends CloudletSchedulerTimeShare
 
 	/** The cache current requested mips. */
 	private List<Double> cacheCurrentRequestedMips;
+	
+	/** The cache current requested iops. */
+	private Double cacheCurrentRequestedIops;
 
 	/**
 	 * Instantiates a new vM scheduler time shared.
@@ -46,8 +53,9 @@ public class CloudletSchedulerDynamicWorkload extends CloudletSchedulerTimeShare
 	 * @param mips the mips
 	 * @param numberOfPes the pes number
 	 */
-	public CloudletSchedulerDynamicWorkload(double mips, int numberOfPes) {
+	public CloudletSchedulerDynamicWorkload(double iops, double mips, int numberOfPes) {
 		super();
+		setIops(iops);
 		setMips(mips);
 		setNumberOfPes(numberOfPes);
 		setTotalMips(getNumberOfPes() * getMips());
@@ -73,11 +81,9 @@ public class CloudletSchedulerDynamicWorkload extends CloudletSchedulerTimeShare
 		double timeSpan = currentTime - getPreviousTime();
 		double nextEvent = Double.MAX_VALUE;
 		List<ResCloudlet> cloudletsToFinish = new ArrayList<ResCloudlet>();
-
-		long iopsCapacity = (long) (iopsShare / getCloudletExecList().size());
 		
 		for (ResCloudlet rcl : getCloudletExecList()) {
-			
+		/*	
 						System.err.println(rcl.getCloudletId() + ") RemainingIops= " + rcl.getRemainingIopsCloudletLength());
 			System.err.println(rcl.getCloudletId() + ") IopsFinishedSoFar= " + rcl.getCloudlet().getCloudletIopsFinishedSoFar());
 			System.err.println(rcl.getCloudletId() + ") Iops To remove= " + ((long) (iopsCapacity * timeSpan)));
@@ -90,9 +96,25 @@ public class CloudletSchedulerDynamicWorkload extends CloudletSchedulerTimeShare
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
-			}*/
+			}
+		*/
 			
-			rcl.updateCloudletIopsFinishedSoFar((long) (iopsCapacity * timeSpan));
+			if (!Log.isDisabled()) {
+				Log.formatLine(
+						"%.2f: [Cloudlet #" + rcl.getCloudletId() + "] " 
+								+ "RemainingIops: %d, IopsFinishedSoFar: %d, IopsToRemove: %.2f, "
+								+ "RemainingMips: %d, MipsFinishedSoFar: %d, MipsToRemove: %.2f, Timespan: %.2f",
+						CloudSim.clock(),
+						rcl.getRemainingIopsCloudletLength(),
+						rcl.getCloudlet().getCloudletIopsFinishedSoFar(),
+						timeSpan * getCurrentAllocatedIopsForCloudlet(rcl, getPreviousTime()),
+						rcl.getRemainingCloudletLength(),
+						rcl.getCloudlet().getCloudletFinishedSoFar(),
+						timeSpan * getTotalCurrentAllocatedMipsForCloudlet(rcl, getPreviousTime()),
+						timeSpan);
+			}
+			
+			rcl.updateCloudletIopsFinishedSoFar((long) (timeSpan * getCurrentAllocatedIopsForCloudlet(rcl, getPreviousTime())));
 			rcl.updateCloudletFinishedSoFar((long) (timeSpan
 					* getTotalCurrentAllocatedMipsForCloudlet(rcl, getPreviousTime()) * Consts.MILLION));
 
@@ -207,12 +229,38 @@ public class CloudletSchedulerDynamicWorkload extends CloudletSchedulerTimeShare
 			currentMips.add(mipsForPe);
 		}
 
+		Double requestedIops = getTotalUtilizationOfIo(getPreviousTime()) * getIops();
+		
 		setCachePreviousTime(getPreviousTime());
 		setCacheCurrentRequestedMips(currentMips);
+		setCacheCurrentRequestedIops(requestedIops);
 
 		return currentMips;
 	}
 
+	public Double getCurrentRequestedIops(){
+		if(getCachePreviousTime() == getPreviousTime()) {
+			return getCacheCurrentRequestedIops();
+		}
+		
+		Double requestedIops = getTotalUtilizationOfIo(getPreviousTime()) * getIops();
+		
+		List<Double> currentMips = new ArrayList<Double>();
+		double totalMips = getTotalUtilizationOfCpu(getPreviousTime()) * getTotalMips();
+		double mipsForPe = totalMips / getNumberOfPes();
+
+		for (int i = 0; i < getNumberOfPes(); i++) {
+			currentMips.add(mipsForPe);
+		}
+
+		
+		setCachePreviousTime(getPreviousTime());
+		setCacheCurrentRequestedIops(requestedIops);
+		setCacheCurrentRequestedMips(currentMips);
+		
+		return requestedIops;
+	}
+	
 	/**
 	 * Gets the current mips.
 	 * 
@@ -285,31 +333,16 @@ public class CloudletSchedulerDynamicWorkload extends CloudletSchedulerTimeShare
 	 * @param time the time
 	 * @return the estimated finish time
 	 */
-	public double getEstimatedFinishTime(ResCloudlet rcl, double time, long iopsCapacity) {
+	public double getEstimatedFinishTime(ResCloudlet rcl, double time) {
 
 		double remainingLength = rcl.getRemainingCloudletLength();
 		double remainingIopsLength = rcl.getRemainingIopsCloudletLength();
 		double estimatedMipsTime = remainingLength / getTotalCurrentAllocatedMipsForCloudlet(rcl, time);
-		double estimatedIopsTime = remainingIopsLength / iopsCapacity;
+		double estimatedIopsTime = remainingIopsLength / getCurrentAllocatedIopsForCloudlet(rcl, time);
 		double estimatedFinishTime = time + ((estimatedIopsTime > estimatedMipsTime) ? estimatedIopsTime : estimatedMipsTime);  
 
 		return estimatedFinishTime;
 	}
-	
-	/**
-	 * Get estimated cloudlet completion time.
-	 * 
-	 * @param rcl the rcl
-	 * @param time the time
-	 * @return the estimated finish time
-	 */
-	public double getEstimatedFinishTime(ResCloudlet rcl, double time) {
-		
-		long iopsCapacity = (long) (getCurrentIopsShare() / getCloudletExecList().size());
-		
-		return getEstimatedFinishTime(rcl, time, iopsCapacity);
-	}
-	
 	
 
 	/**
@@ -432,5 +465,43 @@ public class CloudletSchedulerDynamicWorkload extends CloudletSchedulerTimeShare
 	protected void setCacheCurrentRequestedMips(List<Double> cacheCurrentRequestedMips) {
 		this.cacheCurrentRequestedMips = cacheCurrentRequestedMips;
 	}
+	
+	public double getCurrentRequestedIopsForCloudlet(ResCloudlet rcl, double time){
+		return getIops() * rcl.getCloudlet().getUtilizationOfIo(time);
+	}
+	
+	public double getCurrentAvailableIopsForCloudlet(ResCloudlet rcl, double time, double iopsShare){
+		return iopsShare * rcl.getCloudlet().getUtilizationOfIo(time);
+	}
+	
+	public double getCurrentAllocatedIopsForCloudlet(ResCloudlet rcl, double time){
+		double availableIops = getCurrentAvailableIopsForCloudlet(rcl, time, getCurrentIopsShare());
+		double requestedIops = getCurrentRequestedIopsForCloudlet(rcl, time);
+		return (requestedIops < availableIops ? requestedIops : availableIops);
+	}
 
+	public double getTotalUtilizationOfIo(double time) {
+		double totalUtilization = 0;
+		for (ResCloudlet rcl : getCloudletExecList()) {
+			totalUtilization += rcl.getCloudlet().getUtilizationOfIo(time);
+		}
+		return totalUtilization;
+	}
+
+	public double getIops() {
+		return iops;
+	}
+
+	public void setIops(double iops) {
+		this.iops = iops;
+	}
+
+	public Double getCacheCurrentRequestedIops() {
+		return cacheCurrentRequestedIops;
+	}
+
+	public void setCacheCurrentRequestedIops(Double cacheCurrentRequestedIops) {
+		this.cacheCurrentRequestedIops = cacheCurrentRequestedIops;
+	}
+	
 }

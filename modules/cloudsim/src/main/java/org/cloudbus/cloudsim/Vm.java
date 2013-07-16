@@ -172,6 +172,14 @@ public class Vm {
 		}
 		return currentRequestedMips;
 	}
+	
+	public Double getCurrentRequestedIops(){
+		if (isBeingInstantiated()) {
+			System.out.println(this.getUid() + ") Is being Instantiated: " + getIops());
+			return getIops();
+		}
+		return getCloudletScheduler().getCurrentRequestedIops();
+	}
 
 	/**
 	 * Gets the current requested total mips.
@@ -245,6 +253,16 @@ public class Vm {
 		return getTotalUtilizationOfCpu(time) * getMips();
 	}
 
+
+	public Double getTotalUtilizationOfIo(double time) {
+		return getCloudletScheduler().getTotalUtilizationOfIo(time);
+	}
+	
+	public double getTotalUtilizationOfIops(double time) {
+		return getTotalUtilizationOfIo(time) * getIops();
+	}
+
+	
 	/**
 	 * Sets the uid.
 	 * 
@@ -650,13 +668,6 @@ public class Vm {
 			}
 		}
 		getStateHistory().add(newState);
-	}
-
-	public Double getCurrentRequestedIoBw() {
-		if (isBeingInstantiated()) {
-			return getIops();
-		}
-		return (getCloudletScheduler().getCurrentRequestedUtilizationOfIops() * getIops());
 	}
 
 }
