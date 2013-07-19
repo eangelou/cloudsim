@@ -44,17 +44,15 @@ public class RandomHelper {
 		long outputSize = 300;
 		long seed = RandomConstants.CLOUDLET_UTILIZATION_SEED;
 		UtilizationModel utilizationModelNull = new UtilizationModelNull();
-		UtilizationModel utilizationModelFull = new UtilizationModelFull();
+		UtilizationModel utilizationModelFull = new UtilizationModelFull(0.2);
 
 		for (int i = 0; i < cloudletsNumber; i++) {
 			Cloudlet cloudlet = null;
 			if (seed == -1) {
 				cloudlet = new Cloudlet(
 						i,
-						2000,
-						//Constants.CLOUDLET_LENGTH,
-						//TODO gspilio: every cloudlet has 200000 IOPS
-						100,
+						Constants.CLOUDLET_LENGTH,
+						Constants.CLOUDLET_IOPS_LENGTH,
 						Constants.CLOUDLET_PES,
 						fileSize,
 						outputSize,
@@ -65,10 +63,8 @@ public class RandomHelper {
 			} else {
 				cloudlet = new Cloudlet(
 						i,
-						2000,
-						//Constants.CLOUDLET_LENGTH,
-						//TODO gspilio: every cloudlet has 200000 IOPS
-						100,
+						Constants.CLOUDLET_LENGTH,
+						Constants.CLOUDLET_IOPS_LENGTH,
 						Constants.CLOUDLET_PES,
 						fileSize,
 						outputSize,

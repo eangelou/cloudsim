@@ -118,6 +118,14 @@ public class CloudletSchedulerDynamicWorkload extends CloudletSchedulerTimeShare
 			rcl.updateCloudletFinishedSoFar((long) (timeSpan
 					* getTotalCurrentAllocatedMipsForCloudlet(rcl, getPreviousTime()) * Consts.MILLION));
 
+			if (rcl.getRemainingCloudletLength() == 0){
+				rcl.getCloudlet().setUtilizationModelCpu(new UtilizationModelNull());
+			}
+			
+			if (rcl.getRemainingIopsCloudletLength() == 0){
+				rcl.getCloudlet().setUtilizationModelIo(new UtilizationModelNull());
+			}
+			
 			if (rcl.getRemainingCloudletLength() == 0 && rcl.getRemainingIopsCloudletLength() == 0) { // finished: remove from the list
 				cloudletsToFinish.add(rcl);
 				continue;
@@ -471,7 +479,7 @@ public class CloudletSchedulerDynamicWorkload extends CloudletSchedulerTimeShare
 	}
 	
 	public double getCurrentAvailableIopsForCloudlet(ResCloudlet rcl, double time, double iopsShare){
-		return iopsShare * rcl.getCloudlet().getUtilizationOfIo(time);
+		return iopsShare;
 	}
 	
 	public double getCurrentAllocatedIopsForCloudlet(ResCloudlet rcl, double time){

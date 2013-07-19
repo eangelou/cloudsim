@@ -48,14 +48,13 @@ public class PowerHostUtilizationHistory extends PowerHost {
 	 */
 	public PowerHostUtilizationHistory(
 			int id,
-			IoProvisioner ioProvisioner,
 			RamProvisioner ramProvisioner,
 			BwProvisioner bwProvisioner,
 			long storage,
 			List<? extends Pe> peList,
 			VmScheduler vmScheduler,
 			PowerModel powerModel) {
-		super(id, ioProvisioner, ramProvisioner, bwProvisioner, storage, peList, vmScheduler, powerModel);
+		super(id, ramProvisioner, bwProvisioner, storage, peList, vmScheduler, powerModel);
 	}
 
 	/**

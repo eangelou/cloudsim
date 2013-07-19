@@ -49,7 +49,6 @@ public class PowerHost extends HostDynamicWorkload {
 	 */
 	public PowerHost(
 			int id,
-			IoProvisioner ioProvisioner,
 			RamProvisioner ramProvisioner,
 			BwProvisioner bwProvisioner,
 			long storage,

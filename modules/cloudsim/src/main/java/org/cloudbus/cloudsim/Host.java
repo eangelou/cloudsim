@@ -102,8 +102,21 @@ public class Host {
 				"\tUsed IOPS: " + this.ioProvisioner.getUsedIoBw() +
 				"\tNumber of Vms: " + getVmList().size());
 */
+
+		VmScheduler scheduler = getVmScheduler();
+		
 		for (Vm vm : getVmList()) {
-			VmScheduler scheduler = getVmScheduler();
+			/*
+			Log.formatLine(
+					"%.2f: AAAAAAAA [Host #" + getId() + "] Total allocated IOPS for VM #" + vm.getId()
+							+ " (Host #" + vm.getHost().getId()
+							+ ") is %.2f, was requested %.2f out of total %.2f (%.2f%%)",
+					CloudSim.clock(),
+					getVmScheduler().getAllocatedIopsForVm(vm),
+					vm.getCurrentRequestedIops(),
+					vm.getIops(),
+					vm.getCurrentRequestedIops() / vm.getIops() * 100);
+			*/
 			double time = vm.updateVmProcessing(currentTime, scheduler.getAllocatedMipsForVm(vm), scheduler.getAllocatedIopsForVm(vm));
 			if (time > 0.0 && time < smallerTime) {
 				smallerTime = time;

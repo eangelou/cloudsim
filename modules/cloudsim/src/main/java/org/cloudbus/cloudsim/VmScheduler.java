@@ -362,21 +362,19 @@ public abstract class VmScheduler {
 	}
 	
 	public boolean allocateIopsForVm(Vm vm, Double currentRequestedIops) {
-		int numOfVms;
-		if(allocatedIopsMap.get(vm.getUid()) != null){
-			numOfVms = allocatedIopsMap.size();
-		} else {
+		if(allocatedIopsMap.get(vm.getUid()) == null){
 			allocatedIopsMap.put(vm.getUid(), 0.0);
 			requestedIopsMap.put(vm.getUid(), currentRequestedIops);
-			numOfVms = allocatedIopsMap.size() + 1;
 		}
 		
 		double totalRequestedIops = 0.0;
 		for (String vmId: requestedIopsMap.keySet()) {
 			totalRequestedIops += requestedIopsMap.get(vmId);
 		}
-		Double iopsShare = ioProvisioner.getIoBw() /(totalRequestedIops); 
+		Double iopsShare = (ioProvisioner.getIoBw() > totalRequestedIops) ? 1 : ioProvisioner.getIoBw() /(totalRequestedIops); 
+		System.err.println("iopsShare: " + iopsShare );
 		for (String vmId : allocatedIopsMap.keySet()) {
+			System.err.println("Allocating for (" + vmId + ") " + iopsShare * requestedIopsMap.get(vmId));
 			allocatedIopsMap.put(vmId, iopsShare * requestedIopsMap.get(vmId));
 		}
 		return true;

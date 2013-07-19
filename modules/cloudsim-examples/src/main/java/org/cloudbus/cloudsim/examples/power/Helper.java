@@ -71,15 +71,14 @@ public class Helper {
 					i,
 					brokerId,
 					Constants.VM_MIPS[vmType],
-					//TODO gspilio: VM iops not used
-					400,
+					Constants.VM_IOPS,
 					Constants.VM_PES[vmType],
 					Constants.VM_RAM[vmType],
 					Constants.VM_BW,
 					Constants.VM_SIZE,
 					1,
 					"Xen",
-					new CloudletSchedulerDynamicWorkload(400, Constants.VM_MIPS[vmType], Constants.VM_PES[vmType]),
+					new CloudletSchedulerDynamicWorkload(Constants.VM_IOPS, Constants.VM_MIPS[vmType], Constants.VM_PES[vmType]),
 					Constants.SCHEDULING_INTERVAL));
 		}
 		return vms;
@@ -102,17 +101,14 @@ public class Helper {
 				peList.add(new Pe(j, new PeProvisionerSimple(Constants.HOST_MIPS[hostType])));
 			}
 
-			IoProvisioner ioProvisioner = new IoProvisionerSimple(400);
 			
 			hostList.add(new PowerHostUtilizationHistory(
 					i,
-					//TODO gspilio: All hosts have 200000 IOPS
-					new IoProvisionerSimple(10000),
 					new RamProvisionerSimple(Constants.HOST_RAM[hostType]),
 					new BwProvisionerSimple(Constants.HOST_BW),
 					Constants.HOST_STORAGE,
 					peList,
-					new VmSchedulerTimeSharedOverSubscription(peList, ioProvisioner),
+					new VmSchedulerTimeSharedOverSubscription(peList, new IoProvisionerSimple(Constants.HOST_IOPS)),
 					Constants.HOST_POWER[hostType]));
 		}
 		return hostList;

@@ -167,7 +167,7 @@ public class HostDynamicWorkload extends Host {
 			if (vm.isInMigration()) {
 				continue;
 			}
-			if (vm.getCurrentRequestedTotalMips() == 0) {
+			if (vm.getCurrentRequestedTotalMips() == 0 && vm.getCurrentRequestedIops() == 0) {
 				vmsToRemove.add(vm);
 			}
 		}

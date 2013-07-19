@@ -11,6 +11,8 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.cloudbus.cloudsim.core.CloudSim;
+
 /**
  * Vm represents a VM: it runs inside a Host, sharing hostList with other VMs. It processes
  * cloudlets. This processing happens according to a policy, defined by the CloudletScheduler. Each
@@ -175,8 +177,8 @@ public class Vm {
 	
 	public Double getCurrentRequestedIops(){
 		if (isBeingInstantiated()) {
-			System.out.println(this.getUid() + ") Is being Instantiated: " + getIops());
-			return getIops();
+			System.out.println(this.getUid() + ") Is being Instantiated: " + 0.2 * getIops());
+			return 0.2 * getIops();
 		}
 		return getCloudletScheduler().getCurrentRequestedIops();
 	}

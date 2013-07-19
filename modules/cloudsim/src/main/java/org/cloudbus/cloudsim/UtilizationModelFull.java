@@ -17,13 +17,22 @@ package org.cloudbus.cloudsim;
  */
 public class UtilizationModelFull implements UtilizationModel {
 
+	double util = 1.0;
+	
+	public UtilizationModelFull(double util){
+		this.util = util;
+	}
+	
+	public UtilizationModelFull(){
+		this.util = 1.0;
+	}
 	/*
 	 * (non-Javadoc)
 	 * @see cloudsim.power.UtilizationModel#getUtilization(double)
 	 */
 	@Override
 	public double getUtilization(double time) {
-		return 1;
+		return util;
 	}
 
 }
