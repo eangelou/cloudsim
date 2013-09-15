@@ -299,9 +299,7 @@ public class HostDynamicWorkload extends Host {
 	 * @param requestedMips the requested mips
 	 * @param isActive the is active
 	 */
-	public
-			void
-			addStateHistoryEntry(double time, double allocatedMips, double requestedMips, boolean isActive) {
+	public void addStateHistoryEntry(double time, double allocatedMips, double requestedMips, boolean isActive) {
 
 		HostStateHistoryEntry newState = new HostStateHistoryEntry(
 				time,

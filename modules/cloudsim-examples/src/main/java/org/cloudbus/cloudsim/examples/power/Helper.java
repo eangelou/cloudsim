@@ -14,6 +14,7 @@ import java.util.Scanner;
 
 import org.cloudbus.cloudsim.Cloudlet;
 import org.cloudbus.cloudsim.CloudletSchedulerDynamicWorkload;
+import org.cloudbus.cloudsim.CloudletSchedulerDynamicWorkloadIops;
 import org.cloudbus.cloudsim.Datacenter;
 import org.cloudbus.cloudsim.DatacenterBroker;
 import org.cloudbus.cloudsim.DatacenterCharacteristics;

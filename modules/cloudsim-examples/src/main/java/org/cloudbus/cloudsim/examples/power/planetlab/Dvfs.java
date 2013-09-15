@@ -33,7 +33,9 @@ public class Dvfs {
 	public static void main(String[] args) throws IOException {
 		boolean enableOutput = true;
 		boolean outputToFile = false;
-		String inputFolder = Dvfs.class.getClassLoader().getResource("workload/planetlab").getPath();
+		//System.out.println(Dvfs.class.getClassLoader().getResource("").getPath());
+		//System.out.println(Dvfs.class.getResource("/home/giannis/diplomatiki/cloudsim/modules/cloudsim-examples/src/main/resources/workload/planetlab").getPath());
+		String inputFolder = Dvfs.class.getResource("workload/planetlab").getPath();
 		String outputFolder = "output";
 		String workload = "20110303"; // PlanetLab workload
 		String vmAllocationPolicy = "dvfs"; // DVFS policy without VM migrations

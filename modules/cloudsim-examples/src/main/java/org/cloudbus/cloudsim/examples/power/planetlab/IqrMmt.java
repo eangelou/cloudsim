@@ -32,7 +32,7 @@ public class IqrMmt {
 	public static void main(String[] args) throws IOException {
 		boolean enableOutput = true;
 		boolean outputToFile = false;
-		String inputFolder = IqrMmt.class.getClassLoader().getResource("workload/planetlab").getPath();
+		String inputFolder = IqrMmt.class.getResource("workload/planetlab").getPath();
 		String outputFolder = "output";
 		String workload = "20110303"; // PlanetLab workload
 		String vmAllocationPolicy = "iqr"; // Inter Quartile Range (IQR) VM allocation policy

@@ -140,7 +140,7 @@ public class Host {
 	 */
 	public void addMigratingInVm(Vm vm) {
 		vm.setInMigration(true);
-		//Should we check remaining Io Bw too?
+		
 		if (!getVmsMigratingIn().contains(vm)) {
 			if (getStorage() < vm.getSize()) {
 				Log.printLine("[VmScheduler.addMigratingInVm] Allocation of VM #" + vm.getId() + " to Host #"
@@ -160,6 +160,12 @@ public class Host {
 				System.exit(0);
 			}
 
+			if (!getVmScheduler().allocateIopsForVm(vm, vm.getCurrentRequestedIops())) {
+				Log.printLine("[VmScheduler.vmCreate] Allocation of VM #" + vm.getId() + " to Host #" + getId()
+						+ "failed by IOPS");
+				System.exit(0);
+			}
+			
 			getVmScheduler().getVmsMigratingIn().add(vm.getUid());
 			if (!getVmScheduler().allocatePesForVm(vm, vm.getCurrentRequestedMips())) {
 				Log.printLine("[VmScheduler.addMigratingInVm] Allocation of VM #" + vm.getId() + " to Host #"
@@ -309,6 +315,7 @@ public class Host {
 	protected void vmDeallocate(Vm vm) {
 		getRamProvisioner().deallocateRamForVm(vm);
 		getBwProvisioner().deallocateBwForVm(vm);
+		getVmScheduler().deallocateIopsForVm(vm);
 		getVmScheduler().deallocatePesForVm(vm);
 		setStorage(getStorage() + vm.getSize());
 	}
@@ -319,6 +326,7 @@ public class Host {
 	protected void vmDeallocateAll() {
 		getRamProvisioner().deallocateRamForAllVms();
 		getBwProvisioner().deallocateBwForAllVms();
+		getVmScheduler().deallocateIopsForAllVms();
 		getVmScheduler().deallocatePesForAllVms();
 	}
 

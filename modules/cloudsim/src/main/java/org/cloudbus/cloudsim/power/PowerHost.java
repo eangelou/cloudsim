@@ -11,6 +11,7 @@ package org.cloudbus.cloudsim.power;
 import java.util.List;
 
 import org.cloudbus.cloudsim.HostDynamicWorkload;
+import org.cloudbus.cloudsim.HostDynamicWorkloadIops;
 import org.cloudbus.cloudsim.Pe;
 import org.cloudbus.cloudsim.VmScheduler;
 import org.cloudbus.cloudsim.power.models.PowerModel;
@@ -32,7 +33,7 @@ import org.cloudbus.cloudsim.provisioners.RamProvisioner;
  * @author Anton Beloglazov
  * @since CloudSim Toolkit 2.0
  */
-public class PowerHost extends HostDynamicWorkload {
+public class PowerHost extends HostDynamicWorkloadIops {
 
 	/** The power model. */
 	private PowerModel powerModel;

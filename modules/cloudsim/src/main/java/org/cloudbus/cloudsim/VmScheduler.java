@@ -371,11 +371,11 @@ public abstract class VmScheduler {
 		for (String vmId: requestedIopsMap.keySet()) {
 			totalRequestedIops += requestedIopsMap.get(vmId);
 		}
-		Double iopsShare = (ioProvisioner.getIoBw() > totalRequestedIops) ? 1 : ioProvisioner.getIoBw() /(totalRequestedIops); 
-		System.err.println("iopsShare: " + iopsShare );
+		Double iopsScaleFactor = (ioProvisioner.getIoBw() > totalRequestedIops) ? 1 : ioProvisioner.getIoBw() /(totalRequestedIops); 
+		System.err.println("iopsScaleFactor: " + iopsScaleFactor );
 		for (String vmId : allocatedIopsMap.keySet()) {
-			System.err.println("Allocating for (" + vmId + ") " + iopsShare * requestedIopsMap.get(vmId));
-			allocatedIopsMap.put(vmId, iopsShare * requestedIopsMap.get(vmId));
+			System.err.println("Allocating for (" + vmId + ") " + iopsScaleFactor * requestedIopsMap.get(vmId));
+			allocatedIopsMap.put(vmId, iopsScaleFactor * requestedIopsMap.get(vmId));
 		}
 		return true;
 	}
@@ -383,6 +383,11 @@ public abstract class VmScheduler {
 	public void deallocateIopsForVm(Vm vm){
 		getAllocatedIopsMap().remove(vm.getUid());
 		getRequestedIopsMap().remove(vm.getUid());
+	}
+	
+	public void deallocateIopsForAllVms(){
+		getAllocatedIopsMap().clear();
+		getRequestedIopsMap().clear();
 	}
 
 	public Map<String, Double> getRequestedIopsMap() {

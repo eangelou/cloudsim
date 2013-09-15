@@ -24,7 +24,7 @@ public class Constants {
 	public final static double SCHEDULING_INTERVAL = 300;
 	public final static double SIMULATION_LIMIT = 24 * 60 * 60;
 
-	public final static int CLOUDLET_LENGTH	= 400000; //* (int) SIMULATION_LIMIT;
+	public final static int CLOUDLET_LENGTH	= 2500 * (int) SIMULATION_LIMIT;
 	public final static int CLOUDLET_IOPS_LENGTH =  (int) SIMULATION_LIMIT;
 	public final static int CLOUDLET_PES	= 1;
 
@@ -33,7 +33,7 @@ public class Constants {
 	 *   High-Memory Extra Large Instance: 3.25 EC2 Compute Units, 8.55 GB // too much MIPS
 	 *   High-CPU Medium Instance: 2.5 EC2 Compute Units, 0.85 GB
 	 *   Extra Large Instance: 2 EC2 Compute Units, 3.75 GB
-	 *   Small Instance: 1 EC2 Compute Unit, 1.7 GB
+	 *   Small Instance: 1 EC2 Compute Unit, 1.7 GBs
 	 *   Micro Instance: 0.5 EC2 Compute Unit, 0.633 GB
 	 *   We decrease the memory size two times to enable oversubscription
 	 *
