@@ -275,7 +275,7 @@ public class Log {
 		PrintStream ps;
 		File file = null;
 		try {
-			file = new File(vmUtilizationOutput);
+			file = new File("/local/" + vmUtilizationOutput);
 			if (!file.exists()){
 				file.createNewFile();
 			}
