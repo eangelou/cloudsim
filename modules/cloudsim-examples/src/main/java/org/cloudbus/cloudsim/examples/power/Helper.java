@@ -14,7 +14,7 @@ import java.util.Scanner;
 
 import org.cloudbus.cloudsim.Cloudlet;
 import org.cloudbus.cloudsim.CloudletSchedulerDynamicWorkload;
-import org.cloudbus.cloudsim.CloudletSchedulerDynamicWorkloadIops;
+import org.cloudbus.cloudsim.CloudletSchedulerDynamicWorkloadIopsSimple;
 import org.cloudbus.cloudsim.Datacenter;
 import org.cloudbus.cloudsim.DatacenterBroker;
 import org.cloudbus.cloudsim.DatacenterCharacteristics;
@@ -386,7 +386,7 @@ public class Helper {
 
 		} else {
 			Log.setDisabled(false);
-			Log.printLine();
+			Log.printEmptyLine();
 			Log.printLine(String.format("Experiment name: " + experimentName));
 			Log.printLine(String.format("Number of hosts: " + numberOfHosts));
 			Log.printLine(String.format("Number of VMs: " + numberOfVms));
@@ -462,7 +462,7 @@ public class Helper {
 				Log.printLine(String
 						.format("Execution time - total stDev: %.5f sec", executionTimeTotalStDev));
 			}
-			Log.printLine();
+			Log.printEmptyLine();
 		}
 
 		Log.setDisabled(true);
@@ -728,7 +728,7 @@ public class Helper {
 		Cloudlet cloudlet;
 
 		String indent = "\t";
-		Log.printLine();
+		Log.printEmptyLine();
 		Log.printLine("========== OUTPUT ==========");
 		Log.printLine("Cloudlet ID" + indent + "STATUS" + indent + "Resource ID" + indent + "VM ID" + indent
 				+ "Time" + indent + "Start Time" + indent + "Finish Time");
@@ -767,17 +767,17 @@ public class Helper {
 			for (Double time : vmAllocationPolicy.getTimeHistory().get(host.getId())) {
 				Log.format("%.2f, ", time);
 			}
-			Log.printLine();
+			Log.printEmptyLine();
 
 			for (Double utilization : vmAllocationPolicy.getUtilizationHistory().get(host.getId())) {
 				Log.format("%.2f, ", utilization);
 			}
-			Log.printLine();
+			Log.printEmptyLine();
 
 			for (Double metric : vmAllocationPolicy.getMetricHistory().get(host.getId())) {
 				Log.format("%.2f, ", metric);
 			}
-			Log.printLine();
+			Log.printEmptyLine();
 		}
 	}
 

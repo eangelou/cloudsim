@@ -81,6 +81,19 @@ public class HostDynamicWorkload extends Host {
 			getVmScheduler().allocateIopsForVm(vm, vm.getCurrentRequestedIops());
 		}
 
+		if(!Log.isDisabled()){
+			double hostIopsUtil = 
+					getVmScheduler().getTotalRequestedIops() / 
+					getVmScheduler().getIops();
+			double hostIopsLeft = (hostIopsUtil > 1) ? 0 : (getVmScheduler().getIops() * (1-hostIopsUtil));
+			Log.formatLine("hostUtil", 
+					"%.2f, %d, %.3f, %.2f, %.3f",
+					currentTime,
+					getId(),
+					hostIopsUtil,
+					hostIopsLeft,
+					getPreviousUtilizationOfCpu());
+		}
 		for (Vm vm : getVmList()) {
 			double totalRequestedMips = vm.getCurrentRequestedTotalMips();
 			double totalAllocatedMips = getVmScheduler().getTotalAllocatedMipsForVm(vm);

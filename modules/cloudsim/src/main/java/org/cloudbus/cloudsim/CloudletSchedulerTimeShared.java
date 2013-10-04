@@ -597,4 +597,10 @@ public class CloudletSchedulerTimeShared extends CloudletScheduler {
 		return bw;
 	}
 
+	@Override
+	public double getTotalUtilizationOfIo(double time) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
 }

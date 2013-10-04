@@ -13,6 +13,8 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * The Log class used for performing loggin of the simulation process. It provides the ability to
@@ -25,16 +27,16 @@ public class Log {
 
 	/** The Constant LINE_SEPARATOR. */
 	private static final String LINE_SEPARATOR = System.getProperty("line.separator");
-
+	private static final String LOG_FOLDER = "/local/gspilio/";
+	
 	/** The output. */
-	private static OutputStream output;
+	private static Map<String,OutputStream> outputMap = new HashMap<String,OutputStream>();
 	private static OutputStream vmUtilizationOutput;
 
 	/** The disable output flag. */
 	private static boolean disabled;
 	
-	private static String vmUtilHeader = "Time, Host Id, Vm Id, Cloudlet Id, Remaining Iops, Iops Util, Remaining Mips, Mips Util";
-
+	
 	/**
 	 * Prints the message.
 	 * 
@@ -44,6 +46,21 @@ public class Log {
 		if (!isDisabled()) {
 			try {
 				getOutput().write(message.getBytes());
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+
+	/**
+	 * Prints the message.
+	 * 
+	 * @param message the message
+	 */
+	public static void print(String outputName, String message) {
+		if (!isDisabled()) {
+			try {
+				getOutput(outputName).write(message.getBytes());
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
@@ -62,6 +79,17 @@ public class Log {
 	}
 
 	/**
+	 * Prints the message passed as a non-String object.
+	 * 
+	 * @param message the message
+	 */
+	public static void print(String outputName, Object message) {
+		if (!isDisabled()) {
+			print(outputName, String.valueOf(message));
+		}
+	}
+
+	/**
 	 * Prints the line.
 	 * 
 	 * @param message the message
@@ -73,11 +101,31 @@ public class Log {
 	}
 
 	/**
+	 * Prints the line.
+	 * 
+	 * @param message the message
+	 */
+	public static void printLine(String outputName, String message) {
+		if (!isDisabled()) {
+			print(outputName, message + LINE_SEPARATOR);
+		}
+	}
+
+	/**
 	 * Prints the empty line.
 	 */
-	public static void printLine() {
+	public static void printEmptyLine() {
 		if (!isDisabled()) {
 			print(LINE_SEPARATOR);
+		}
+	}
+
+	/**
+	 * Prints the empty line.
+	 */
+	public static void printEmptyLine(String outputName) {
+		if (!isDisabled()) {
+			print(outputName, LINE_SEPARATOR);
 		}
 	}
 
@@ -89,6 +137,17 @@ public class Log {
 	public static void printLine(Object message) {
 		if (!isDisabled()) {
 			printLine(String.valueOf(message));
+		}
+	}
+
+	/**
+	 * Prints the line passed as a non-String object.
+	 * 
+	 * @param message the message
+	 */
+	public static void printLine(String outputName, Object message) {
+		if (!isDisabled()) {
+			printLine(outputName, String.valueOf(message));
 		}
 	}
 
@@ -105,6 +164,18 @@ public class Log {
 	}
 
 	/**
+	 * Prints a string formated as in String.format().
+	 * 
+	 * @param format the format
+	 * @param args the args
+	 */
+	public static void format(String outputName, String format, Object... args) {
+		if (!isDisabled()) {
+			print(outputName, String.format(format, args));
+		}
+	}
+
+	/**
 	 * Prints a line formated as in String.format().
 	 * 
 	 * @param format the format
@@ -117,24 +188,112 @@ public class Log {
 	}
 
 	/**
-	 * Sets the output.
+	 * Prints a line formated as in String.format().
 	 * 
-	 * @param _output the new output
+	 * @param format the format
+	 * @param args the args
 	 */
-	public static void setOutput(OutputStream _output) {
-		output = _output;
+	public static void formatLine(String outputName, String format, Object... args) {
+		if (!isDisabled()) {
+			printLine(outputName, String.format(format, args));
+		}
 	}
 
 	/**
-	 * Gets the output.
+	 * Gets the output with key default.
 	 * 
 	 * @return the output
 	 */
 	public static OutputStream getOutput() {
-		if (output == null) {
-			setOutput(System.out);
+		if (outputMap.get("default") == null) {
+			createOutput("default",System.out);
+		}
+		return getOutput("default");
+	}
+	
+	/**
+	 * Gets from outputMap the output with key outputName
+	 * 
+	 * @param outputName the key for the output
+	 * @return the output
+	 */
+	public static OutputStream getOutput(String outputName) {
+		OutputStream output = outputMap.get(outputName);
+		if (output == null){
+			System.err.println("Unknown output '" + outputName + "' requested!\n Creating the requested output!");
+			createOutput(outputName);
+			return outputMap.get(outputName);
 		}
 		return output;
+	}
+	
+	/**
+	 * Adds output to outputMap with key outputName
+	 * 
+	 * @param outputName the key for the output
+	 * @param output the output to be added
+	 */
+	public static void createOutput(OutputStream output){
+		outputMap.put("default", output);
+	}
+	
+	/**
+	 * Adds output to outputMap with key outputName
+	 * 
+	 * @param outputName the key for the output
+	 * @param output the output to be added
+	 */
+	public static void createOutput(String outputName, OutputStream output){
+		outputMap.put(outputName, output);
+	}
+	
+	/**
+	 * Creates log file with name outputName to LOG_FOLDER. Creates new output to that file and
+	 * add this output to outputMap with key outputName
+	 * 
+	 * @param outputName the key for the output (also the name of the file)
+	 */
+	public static void createOutput(String outputName){
+		createOutput(outputName, outputName);
+	}
+	
+	/**
+	 * Creates log file with name outputName to LOG_FOLDER. Creates new output to that file and
+	 * add this output to outputMap with key outputName
+	 * 
+	 * @param outputName the key for the output
+	 * @param outputFileName the name of the log file.
+	 */
+	public static void createOutput(String outputName, String outputFileName){
+		FileOutputStream out;
+		PrintStream ps;
+		File file = null;
+		try {
+			file = new File(LOG_FOLDER + outputFileName);
+			if (!file.exists()){
+				file.createNewFile();
+			}
+			out = new FileOutputStream(file);
+			ps = new PrintStream(out);
+			outputMap.put(outputName, ps);
+		} catch (Exception e){
+			System.err.println("Failed to initialize " + LOG_FOLDER + outputFileName + " log file.\n\n" +
+					e.getMessage() + "\n\n" + e.getStackTrace() );
+			System.exit(0);
+		}
+	}
+	
+	/**
+	 * Creates log file with name outputName to LOG_FOLDER. Creates new output to that file and
+	 * add this output to outputMap with key outputName
+	 * 
+	 * @param outputName the key for the output
+	 * @param outputFileName the name of the log file.
+	 * @param header the header (first line) of the log file
+	 */
+	public static void createOutput(String outputName, String outputFileName, String header){
+		createOutput(outputName, outputFileName);
+		printLine(outputName, header);
 	}
 
 	/**
@@ -167,152 +326,6 @@ public class Log {
 	 */
 	public static void enable() {
 		setDisabled(false);
-	}
-
-
-	////////////////////////////////////////////////////////////////////////////////
-
-	/**
-	 * Prints the message.
-	 * 
-	 * @param message the message
-	 */
-	public static void vmUtilPrint(String message) {
-		if (!isDisabled()) {
-			try {
-				getVmUtilOutput().write(message.getBytes());
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
-	}
-
-	/**
-	 * Prints the message passed as a non-String object.
-	 * 
-	 * @param message the message
-	 */
-	public static void vmUtilPrint(Object message) {
-		if (!isDisabled()) {
-			vmUtilPrint(String.valueOf(message));
-		}
-	}
-
-	/**
-	 * Prints the line.
-	 * 
-	 * @param message the message
-	 */
-	public static void vmUtilPrintLine(String message) {
-		if (!isDisabled()) {
-			vmUtilPrint(message + LINE_SEPARATOR);
-		}
-	}
-
-	/**
-	 * Prints the empty line.
-	 */
-	public static void vmUtilPrintLine() {
-		if (!isDisabled()) {
-			vmUtilPrint(LINE_SEPARATOR);
-		}
-	}
-
-	/**
-	 * Prints the line passed as a non-String object.
-	 * 
-	 * @param message the message
-	 */
-	public static void vmUtilPrintLine(Object message) {
-		if (!isDisabled()) {
-			vmUtilPrintLine(String.valueOf(message));
-		}
-	}
-
-	/**
-	 * Prints a string formated as in String.format().
-	 * 
-	 * @param format the format
-	 * @param args the args
-	 */
-	public static void vmUtilFormat(String format, Object... args) {
-		if (!isDisabled()) {
-			vmUtilPrint(String.format(format, args));
-		}
-	}
-
-	/**
-	 * Prints a line formated as in String.format().
-	 * 
-	 * @param format the format
-	 * @param args the args
-	 */
-	public static void vmUtilFormatLine(String format, Object... args) {
-		if (!isDisabled()) {
-			vmUtilPrintLine(String.format(format, args));
-		}
-	}
-
-	/**
-	 * Sets the vmUtilizationOutput.
-	 * 
-	 * @param _output the new output
-	 */
-	public static void setVmUtilOutput(OutputStream _output) {
-		vmUtilizationOutput = _output;
-		vmUtilPrintLine(vmUtilHeader);
-	}
-	
-	
-	/**
-	 * Sets the vmUtilizationOutput.
-	 * If the file can not be created terminate.
-	 * 
-	 * @param output the new output
-	 */
-	public static void setVmUtilOutput(String vmUtilizationOutput) {
-		FileOutputStream out;
-		PrintStream ps;
-		File file = null;
-		try {
-			file = new File("/local/" + vmUtilizationOutput);
-			if (!file.exists()){
-				file.createNewFile();
-			}
-			out = new FileOutputStream(file);
-			ps = new PrintStream(out);
-			setVmUtilOutput(ps);
-		} catch (Exception e){
-			System.err.println("Failed to initialize vmUtilizationLog.");
-			System.exit(0);
-		}
-	}
-	
-	/**
-	 * Gets the output.
-	 * 
-	 * @return the output
-	 */
-	public static OutputStream getVmUtilOutput() {
-		if (vmUtilizationOutput == null) {
-			FileOutputStream out;
-			PrintStream ps;
-			File file = null;
-			try {
-				file = new File("vmUtilization");
-				if (!file.exists()){
-					file.createNewFile();
-				}
-				out = new FileOutputStream(file);
-				ps = new PrintStream(out); 
-				setVmUtilOutput(ps);
-			} catch (Exception e){
-				System.err.println("Failed to initialize vmUtilizationLog.");
-				System.exit(0);
-			}
-			System.err.println("VM utilization LOG: " + file.getAbsolutePath());
-		}
-		return vmUtilizationOutput;
 	}
 
 

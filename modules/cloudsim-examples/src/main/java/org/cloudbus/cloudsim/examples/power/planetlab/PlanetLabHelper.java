@@ -6,11 +6,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.cloudbus.cloudsim.Cloudlet;
-import org.cloudbus.cloudsim.UtilizationIops;
 import org.cloudbus.cloudsim.UtilizationModel;
-import org.cloudbus.cloudsim.UtilizationModelFull;
 import org.cloudbus.cloudsim.UtilizationModelNull;
 import org.cloudbus.cloudsim.UtilizationModelPlanetLabInMemory;
+import org.cloudbus.cloudsim.UtilizationModelStochastic;
 import org.cloudbus.cloudsim.examples.power.Constants;
 
 /**
@@ -44,8 +43,6 @@ public class PlanetLabHelper {
 		long fileSize = 300;
 		long outputSize = 300;
 		UtilizationModel utilizationModelNull = new UtilizationModelNull();
-		UtilizationModel iopsUtilizationModel = new UtilizationIops(new UtilizationModelFull(), 0.0857, 0.0105);
-		UtilizationModel utilizationModelFull = new UtilizationModelFull();
 		
 		
 		File inputFolder = new File(inputFolderName);
@@ -65,7 +62,7 @@ public class PlanetLabHelper {
 						new UtilizationModelPlanetLabInMemory(
 								files[i].getAbsolutePath(),
 								Constants.SCHEDULING_INTERVAL),
-								utilizationModelFull, utilizationModelNull, utilizationModelNull);
+								new UtilizationModelStochastic(i), utilizationModelNull, utilizationModelNull);
 			} catch (Exception e) {
 				e.printStackTrace();
 				System.exit(0);

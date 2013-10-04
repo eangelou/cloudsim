@@ -725,7 +725,7 @@ public class Datacenter extends SimEntity {
 				Log.printLine(getName() + ": Warning - Cloudlet #" + cl.getCloudletId() + " owned by " + name
 						+ " is already completed/finished.");
 				Log.printLine("Therefore, it is not being executed again");
-				Log.printLine();
+				Log.printEmptyLine();
 
 				// NOTE: If a Cloudlet has finished, then it won't be processed.
 				// So, if ack is required, this method sends back a result.

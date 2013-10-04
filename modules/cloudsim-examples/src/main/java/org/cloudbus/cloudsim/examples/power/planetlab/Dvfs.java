@@ -2,6 +2,12 @@ package org.cloudbus.cloudsim.examples.power.planetlab;
 
 import java.io.IOException;
 
+import org.cloudbus.cloudsim.Log;
+
+
+
+
+
 /**
  * A simulation of a heterogeneous power aware data center that only applied DVFS, but no dynamic
  * optimization of the VM allocation. The adjustment of the hosts' power consumption according to
@@ -33,15 +39,20 @@ public class Dvfs {
 	public static void main(String[] args) throws IOException {
 		boolean enableOutput = true;
 		boolean outputToFile = false;
-		//System.out.println(Dvfs.class.getClassLoader().getResource("").getPath());
-		//System.out.println(Dvfs.class.getResource("/home/giannis/diplomatiki/cloudsim/modules/cloudsim-examples/src/main/resources/workload/planetlab").getPath());
-		String inputFolder = Dvfs.class.getResource("workload/planetlab").getPath();
 		String outputFolder = "output";
-		String workload = "20110303"; // PlanetLab workload
+		String workload = args[0];
 		String vmAllocationPolicy = "dvfs"; // DVFS policy without VM migrations
 		String vmSelectionPolicy = "";
 		String parameter = "";
+		String inputFolder = Dvfs.class.getClassLoader().getResource("workload/planetlab").getPath();
+		String vmUtilHeader = "Time, Host Id, Vm Id, Cloudlet Id, iopsShare, Remaining Iops, Iops Util, Remaining Mips, Mips Util";
+		Log.createOutput("vmUtil", vmAllocationPolicy + vmSelectionPolicy + "_" + workload + "vmUtil.log", vmUtilHeader);
+		String hostUtilHeader = "Time, Host Id, Host Io Utilization, Host Iops unutilized, Host Cpu Utilization";
+		Log.createOutput("hostUtil", vmAllocationPolicy + vmSelectionPolicy + "_" + workload + "hostUtil.log", hostUtilHeader);
+		String migrationsHeader = "Time, Vm Id, Old Host Id, New Host Id, Time to completion";
+		Log.createOutput("migrations", vmAllocationPolicy + vmSelectionPolicy + "_" + workload + "migration.log", migrationsHeader);
 
+		
 		new PlanetLabRunner(
 				enableOutput,
 				outputToFile,

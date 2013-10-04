@@ -153,7 +153,7 @@ public class Vm {
 	 */
 	public double updateVmProcessing(double currentTime, List<Double> mipsShare, Double iopsShare) {
 		if (mipsShare != null) {
-			System.err.println("Vm id: " + this.id);
+			//System.err.println("Vm id: " + this.id);
 			return getCloudletScheduler().updateVmProcessing(currentTime, mipsShare, iopsShare);
 		}
 		return 0.0;
@@ -177,7 +177,7 @@ public class Vm {
 	
 	public Double getCurrentRequestedIops(){
 		if (isBeingInstantiated()) {
-			System.out.println(this.getUid() + ") Is being Instantiated: " + 0.2 * getIops());
+			//System.out.println(this.getUid() + ") Is being Instantiated: " + 0.2 * getIops());
 			return 0.2 * getIops();
 		}
 		return getCloudletScheduler().getCurrentRequestedIops();

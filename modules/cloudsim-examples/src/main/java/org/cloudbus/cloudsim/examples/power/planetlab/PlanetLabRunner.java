@@ -5,6 +5,7 @@ import java.util.Calendar;
 import org.cloudbus.cloudsim.Log;
 import org.cloudbus.cloudsim.core.CloudSim;
 import org.cloudbus.cloudsim.examples.power.Helper;
+import org.cloudbus.cloudsim.examples.power.HelperIops;
 import org.cloudbus.cloudsim.examples.power.RunnerAbstract;
 
 /**
@@ -65,12 +66,12 @@ public class PlanetLabRunner extends RunnerAbstract {
 		try {
 			CloudSim.init(1, Calendar.getInstance(), false);
 
-			broker = Helper.createBroker();
+			broker = HelperIops.createBroker();
 			int brokerId = broker.getId();
 
 			cloudletList = PlanetLabHelper.createCloudletListPlanetLab(brokerId, inputFolder);
-			vmList = Helper.createVmList(brokerId, cloudletList.size());
-			hostList = Helper.createHostList(PlanetLabConstants.NUMBER_OF_HOSTS);
+			vmList = HelperIops.createVmList(brokerId, cloudletList.size());
+			hostList = HelperIops.createHostList(PlanetLabConstants.NUMBER_OF_HOSTS);
 		} catch (Exception e) {
 			e.printStackTrace();
 			Log.printLine("The simulation has been terminated due to an unexpected error");

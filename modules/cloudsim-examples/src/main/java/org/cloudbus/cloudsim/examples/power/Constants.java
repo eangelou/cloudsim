@@ -25,7 +25,7 @@ public class Constants {
 	public final static double SIMULATION_LIMIT = 24 * 60 * 60;
 
 	public final static int CLOUDLET_LENGTH	= 2500 * (int) SIMULATION_LIMIT;
-	public final static int CLOUDLET_IOPS_LENGTH =  (int) SIMULATION_LIMIT;
+	public final static int CLOUDLET_IOPS_LENGTH = 2500 * (int) SIMULATION_LIMIT;
 	public final static int CLOUDLET_PES	= 1;
 
 	/*

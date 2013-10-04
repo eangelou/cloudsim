@@ -70,10 +70,10 @@ public class UtilizationIops implements UtilizationModel {
 		}
 
 		double utilization = 0;
-		System.err.println(time + ": mipsLeft = " + this.mipsLeft);
+		//System.err.println(time + ": mipsLeft = " + this.mipsLeft);
 		if (this.mipsLeft <= 0) {
 			this.mipsLeft = this.getMipsUntilNextIopsIssue();
-			System.err.println(time + ": new mipsLeft = " + this.mipsLeft);
+			//System.err.println(time + ": new mipsLeft = " + this.mipsLeft);
 			utilization = model.getUtilization(time);
 		}
 		getHistory().put(time, utilization);

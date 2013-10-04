@@ -136,7 +136,7 @@ public abstract class RunnerAbstract {
 			File file = new File(outputFolder + "/log/"
 					+ getExperimentName(workload, vmAllocationPolicy, vmSelectionPolicy, parameter) + ".txt");
 			file.createNewFile();
-			Log.setOutput(new FileOutputStream(file));
+			Log.createOutput(new FileOutputStream(file));
 		}
 	}
 

@@ -73,6 +73,7 @@ public class CloudletSchedulerDynamicWorkloadIops extends CloudletSchedulerTimeS
 		setCachePreviousTime(-1);
 	}
 
+
 	/**
 	 * Updates the processing of cloudlets running under management of this scheduler.
 	 * 
@@ -104,21 +105,22 @@ public class CloudletSchedulerDynamicWorkloadIops extends CloudletSchedulerTimeS
 			/*try {
 				System.in.read();
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		*/
 			
 			if (!Log.isDisabled()) {
 				
-				Log.vmUtilFormatLine("%.2f, " + this.getHostId() + ", " + rcl.getCloudlet().getVmId() + ", " + rcl.getCloudlet().getCloudletId() +
-						", %d, %.3f, %d, %.3f", 
+				Log.formatLine("vmUtil","%.2f, " + this.getHostId() + ", " + rcl.getCloudlet().getVmId() + ", " + rcl.getCloudlet().getCloudletId() +
+						", %.3f, %d, %.3f, %d, %.3f", 
 						getPreviousTime(),
+						getCurrentIopsShare(),
 						rcl.getRemainingIopsCloudletLength(),
 						rcl.getCloudlet().getUtilizationOfIo(getPreviousTime()),
 						rcl.getRemainingCloudletLength(),
 						rcl.getCloudlet().getUtilizationOfCpu(getPreviousTime())
 						);
+				/*
 				Log.formatLine(
 						"%.2f: [Cloudlet #" + rcl.getCloudletId() + "] " 
 								+ "RemainingIops: %d, IopsFinishedSoFar: %d, IopsToRemove: %.2f, "
@@ -131,6 +133,7 @@ public class CloudletSchedulerDynamicWorkloadIops extends CloudletSchedulerTimeS
 						rcl.getCloudlet().getCloudletFinishedSoFar(),
 						timeSpan * getTotalCurrentAllocatedMipsForCloudlet(rcl, getPreviousTime()),
 						timeSpan);
+				*/
 			}
 			
 			rcl.updateCloudletIopsFinishedSoFar((long) (timeSpan * getCurrentAllocatedIopsForCloudlet(rcl, getPreviousTime())));
@@ -142,12 +145,6 @@ public class CloudletSchedulerDynamicWorkloadIops extends CloudletSchedulerTimeS
 			
 			if (rcl.getRemainingIopsCloudletLength() == 0){
 				rcl.getCloudlet().setUtilizationModelIo(new UtilizationModelNull());
-			} else {
-				UtilizationIops iopsUtilizationModel = ((UtilizationIops) rcl.getCloudlet().getUtilizationModelIo());
-				iopsUtilizationModel.updateMipsLeft(mipsToRemove / Consts.MILLION);
-				double mipsUtilization = rcl.getCloudlet().getUtilizationModelCpu().getUtilization(currentTime);
-				iopsUtilizationModel.setMipsUtilization(mipsUtilization);
-				iopsUtilizationModel.setAllocatedMips(getTotalCurrentAllocatedMipsForCloudlet(rcl, currentTime));
 			}
 			
 			if (rcl.getRemainingCloudletLength() == 0 && rcl.getRemainingIopsCloudletLength() == 0) { // finished: remove from the list
@@ -179,43 +176,7 @@ public class CloudletSchedulerDynamicWorkloadIops extends CloudletSchedulerTimeS
 
 		return nextEvent;
 	}
-
-	/**
-	 * Receives an cloudlet to be executed in the VM managed by this scheduler.
-	 * 
-	 * @param cl the cl
-	 * @return predicted completion time
-	 * @pre _gl != null
-	 * @post $none
-	 */
-	@Override
-	public double cloudletSubmit(Cloudlet cl) {
-		return cloudletSubmit(cl, 0);
-	}
-
-	/**
-	 * Receives an cloudlet to be executed in the VM managed by this scheduler.
-	 * 
-	 * @param cl the cl
-	 * @param fileTransferTime the file transfer time
-	 * @return predicted completion time
-	 * @pre _gl != null
-	 * @post $none
-	 */
-	@Override
-	public double cloudletSubmit(Cloudlet cl, double fileTransferTime) {
-		ResCloudlet rcl = new ResCloudlet(cl);
-		rcl.setCloudletStatus(Cloudlet.INEXEC);
-
-		for (int i = 0; i < cl.getNumberOfPes(); i++) {
-			rcl.setMachineAndPeId(0, i);
-		}
-
-		getCloudletExecList().add(rcl);
-		double mipsUtilization = rcl.getCloudlet().getUtilizationOfCpu(getPreviousTime());
-		((UtilizationIops) rcl.getCloudlet().getUtilizationModelIo()).setMipsUtilization(mipsUtilization);
-		return getEstimatedFinishTime(rcl, getPreviousTime());
-	}
+	
 
 	/**
 	 * Processes a finished cloudlet.

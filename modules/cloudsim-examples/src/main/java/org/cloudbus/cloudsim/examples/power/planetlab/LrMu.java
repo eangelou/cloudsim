@@ -2,6 +2,8 @@ package org.cloudbus.cloudsim.examples.power.planetlab;
 
 import java.io.IOException;
 
+import org.cloudbus.cloudsim.Log;
+
 /**
  * A simulation of a heterogeneous power aware data center that applies the Local Regression (LR) VM
  * allocation policy and Minimum Utilization (MU) VM selection policy.
@@ -32,12 +34,18 @@ public class LrMu {
 	public static void main(String[] args) throws IOException {
 		boolean enableOutput = true;
 		boolean outputToFile = false;
-		String inputFolder = LrMu.class.getClassLoader().getResource("workload/planetlab").getPath();
 		String outputFolder = "output";
-		String workload = "20110303"; // PlanetLab workload
+		String workload = args[0];
 		String vmAllocationPolicy = "lr"; // Local Regression (LR) VM allocation policy
 		String vmSelectionPolicy = "mu"; // Minimum Utilization (MU) VM selection policy
 		String parameter = "1.2"; // the safety parameter of the LR policy
+		String inputFolder = LrMu.class.getClassLoader().getResource("workload/planetlab").getPath();
+		String vmUtilHeader = "Time, Host Id, Vm Id, Cloudlet Id, iopsShare, Remaining Iops, Iops Util, Remaining Mips, Mips Util";
+		Log.createOutput("vmUtil", vmAllocationPolicy + vmSelectionPolicy + "_" + workload + "vmUtil.log", vmUtilHeader);
+		String hostUtilHeader = "Time, Host Id, Host Io Utilization, Host Iops unutilized, Host Cpu Utilization";
+		Log.createOutput("hostUtil", vmAllocationPolicy + vmSelectionPolicy + "_" + workload + "hostUtil.log", hostUtilHeader);
+		String migrationsHeader = "Time, Vm Id, Old Host Id, New Host Id, Time to completion";
+		Log.createOutput("migrations", vmAllocationPolicy + vmSelectionPolicy + "_" + workload + "migration.log", migrationsHeader);
 
 		new PlanetLabRunner(
 				enableOutput,

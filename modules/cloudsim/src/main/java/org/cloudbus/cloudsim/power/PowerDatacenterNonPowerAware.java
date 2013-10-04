@@ -133,7 +133,7 @@ public class PowerDatacenterNonPowerAware extends PowerDatacenter {
 				}
 			}
 
-			Log.printLine();
+			Log.printEmptyLine();
 
 			if (!isDisableMigrations()) {
 				List<Map<String, Object>> migrationMap = getVmAllocationPolicy().optimizeAllocation(

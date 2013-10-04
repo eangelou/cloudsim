@@ -110,12 +110,23 @@ public class PowerDatacenter extends Datacenter {
 						PowerHost oldHost = (PowerHost) vm.getHost();
 
 						if (oldHost == null) {
+							Log.formatLine("migrations","%.2f, %d, %d, %.2f",
+									currentTime,
+									vm.getId(),
+									targetHost.getId(),
+									vm.getRam() / ((double) targetHost.getBw() / (2 * 8000)));
 							Log.formatLine(
 									"%.2f: Migration of VM #%d to Host #%d is started",
 									currentTime,
 									vm.getId(),
 									targetHost.getId());
 						} else {
+							Log.formatLine("migrations","%.2f, %d, %d, %d, %.2f",
+									currentTime,
+									vm.getId(),
+									oldHost.getId(),
+									targetHost.getId(),
+									vm.getRam() / ((double) targetHost.getBw() / (2 * 8000)));
 							Log.formatLine(
 									"%.2f: Migration of VM #%d from Host #%d to Host #%d is started",
 									currentTime,
@@ -177,7 +188,7 @@ public class PowerDatacenter extends Datacenter {
 		Log.formatLine("New resource usage for the time frame starting at %.2f:", currentTime);
 
 		for (PowerHost host : this.<PowerHost> getHostList()) {
-			Log.printLine();
+			Log.printEmptyLine();
 
 			double time = host.updateVmsProcessing(currentTime); // inform VMs to update processing
 			if (time < minTime) {
@@ -206,7 +217,7 @@ public class PowerDatacenter extends Datacenter {
 						timeDiff);
 				timeFrameDatacenterEnergy += timeFrameHostEnergy;
 
-				Log.printLine();
+				Log.printEmptyLine();
 				Log.formatLine(
 						"%.2f: [Host #%d] utilization at %.2f was %.2f%%, now is %.2f%%",
 						currentTime,
@@ -240,7 +251,7 @@ public class PowerDatacenter extends Datacenter {
 			}
 		}
 
-		Log.printLine();
+		Log.printEmptyLine();
 
 		setLastProcessTime(currentTime);
 		return minTime;

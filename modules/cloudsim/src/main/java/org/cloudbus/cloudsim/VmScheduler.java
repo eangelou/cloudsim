@@ -46,6 +46,9 @@ public abstract class VmScheduler {
 	/** The IOPS that are currently requested by the VMs. */
 	private Map<String, Double> requestedIopsMap;
 	
+	/** Total requested Iops */
+	private Double totalRequestedIops = 0.0;
+	
 	/** The VMs migrating in. */
 	private List<String> vmsMigratingIn;
 
@@ -371,11 +374,32 @@ public abstract class VmScheduler {
 		for (String vmId: requestedIopsMap.keySet()) {
 			totalRequestedIops += requestedIopsMap.get(vmId);
 		}
+/*
+ * 		If host io is overutilized we don't scale their requests, we give each vm the same share of iops
+ */
+/*
 		Double iopsScaleFactor = (ioProvisioner.getIoBw() > totalRequestedIops) ? 1 : ioProvisioner.getIoBw() /(totalRequestedIops); 
 		System.err.println("iopsScaleFactor: " + iopsScaleFactor );
+
 		for (String vmId : allocatedIopsMap.keySet()) {
 			System.err.println("Allocating for (" + vmId + ") " + iopsScaleFactor * requestedIopsMap.get(vmId));
 			allocatedIopsMap.put(vmId, iopsScaleFactor * requestedIopsMap.get(vmId));
+		}
+		return true;
+	}
+*/
+		setTotalRequestedIops(totalRequestedIops);
+		if (ioProvisioner.getIoBw() > totalRequestedIops) {
+			for (String vmId : allocatedIopsMap.keySet()) {
+				//System.err.println("Allocating for (" + vmId + ") " + iopsScaleFactor * requestedIopsMap.get(vmId));
+				allocatedIopsMap.put(vmId, requestedIopsMap.get(vmId));
+			}			
+		} else {
+			double iopsShare = ioProvisioner.getIoBw() / requestedIopsMap.size();
+			for (String vmId : allocatedIopsMap.keySet()) {
+				//System.err.println("Allocating for (" + vmId + ") " + iopsScaleFactor * requestedIopsMap.get(vmId));
+				allocatedIopsMap.put(vmId, iopsShare);
+			}	
 		}
 		return true;
 	}
@@ -396,6 +420,14 @@ public abstract class VmScheduler {
 
 	public void setRequestedIopsMap(Map<String, Double> requestedIopsMap) {
 		this.requestedIopsMap = requestedIopsMap;
+	}
+
+	public Double getTotalRequestedIops() {
+		return totalRequestedIops;
+	}
+
+	public void setTotalRequestedIops(Double totalRequestedIops) {
+		this.totalRequestedIops = totalRequestedIops;
 	}
 
 }

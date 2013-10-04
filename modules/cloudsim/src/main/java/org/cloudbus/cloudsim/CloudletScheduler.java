@@ -29,7 +29,7 @@ public abstract class CloudletScheduler {
 	
 
 	/** The current iops share. */
-	private Double currentIopsShare;
+	private Double currentIopsShare = 0.0;
 
 	/**
 	 * Creates a new CloudletScheduler object. This method must be invoked before starting the
