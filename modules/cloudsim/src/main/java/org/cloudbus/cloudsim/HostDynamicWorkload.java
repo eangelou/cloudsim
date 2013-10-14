@@ -32,6 +32,12 @@ public class HostDynamicWorkload extends Host {
 	/** The previous utilization mips. */
 	private double previousUtilizationMips;
 
+	/** The utilization iops. */
+	private double utilizationIops;
+
+	/** The previous utilization iops. */
+	private double previousUtilizationIops;
+	
 	/** The state history. */
 	private final List<HostStateHistoryEntry> stateHistory = new LinkedList<HostStateHistoryEntry>();
 
@@ -55,6 +61,8 @@ public class HostDynamicWorkload extends Host {
 		super(id, ramProvisioner, bwProvisioner, storage, peList, vmScheduler);
 		setUtilizationMips(0);
 		setPreviousUtilizationMips(0);
+		setUtilizationIops(0);
+		setPreviousUtilizationIops(0);
 	}
 
 	/*
@@ -66,8 +74,10 @@ public class HostDynamicWorkload extends Host {
 		double smallerTime = super.updateVmsProcessing(currentTime);
 		setPreviousUtilizationMips(getUtilizationMips());
 		setUtilizationMips(0);
+		setPreviousUtilizationIops(getUtilizationIops());
+		setUtilizationIops(0);
 		double hostTotalRequestedMips = 0;
-
+		double hostTotalRequestedIops = 0;
 		
 		for (Vm vm : getVmList()) {
 			getVmScheduler().deallocatePesForVm(vm);
@@ -97,6 +107,8 @@ public class HostDynamicWorkload extends Host {
 		for (Vm vm : getVmList()) {
 			double totalRequestedMips = vm.getCurrentRequestedTotalMips();
 			double totalAllocatedMips = getVmScheduler().getTotalAllocatedMipsForVm(vm);
+			double totalRequestedIops = vm.getCurrentRequestedIops();
+			double totalAllocatedIops = getVmScheduler().getAllocatedIopsForVm(vm);
 
 			if (!Log.isDisabled()) {
 				Log.formatLine(
@@ -104,10 +116,10 @@ public class HostDynamicWorkload extends Host {
 								+ " (Host #" + vm.getHost().getId()
 								+ ") is %.2f, was requested %.2f out of total %.2f (%.2f%%)",
 						CloudSim.clock(),
-						getVmScheduler().getAllocatedIopsForVm(vm),
-						vm.getCurrentRequestedIops(),
+						totalAllocatedIops,
+						totalRequestedIops,
 						vm.getIops(),
-						vm.getCurrentRequestedIops() / vm.getIops() * 100);
+						totalRequestedIops / totalAllocatedIops * 100);
 				
 				
 				Log.formatLine(
@@ -147,7 +159,7 @@ public class HostDynamicWorkload extends Host {
 						totalAllocatedMips,
 						totalRequestedMips,
 						(vm.isInMigration() && !getVmsMigratingIn().contains(vm)));
-
+				//TODO: No performance degradation for iops due migration is implemented. Look into it.
 				if (vm.isInMigration()) {
 					Log.formatLine(
 							"%.2f: [Host #" + getId() + "] VM #" + vm.getId() + " is in migration",
@@ -157,7 +169,9 @@ public class HostDynamicWorkload extends Host {
 			}
 
 			setUtilizationMips(getUtilizationMips() + totalAllocatedMips);
+			setUtilizationIops(getUtilizationIops() + totalAllocatedIops);
 			hostTotalRequestedMips += totalRequestedMips;
+			hostTotalRequestedIops += totalRequestedIops;
 		}
 
 		addStateHistoryEntry(
@@ -238,12 +252,38 @@ public class HostDynamicWorkload extends Host {
 	}
 
 	/**
+	 * Get current utilization of IO in percentage.
+	 * 
+	 * @return current utilization of IO in percents
+	 */
+	public double getUtilizationOfIo() {
+		double utilization = getUtilizationIops() / getIops();
+		if (utilization > 1 && utilization < 1.01) {
+			utilization = 1;
+		}
+		return utilization;
+	}
+
+	/**
 	 * Gets the previous utilization of CPU in percentage.
 	 * 
 	 * @return the previous utilization of cpu
 	 */
 	public double getPreviousUtilizationOfCpu() {
 		double utilization = getPreviousUtilizationMips() / getTotalMips();
+		if (utilization > 1 && utilization < 1.01) {
+			utilization = 1;
+		}
+		return utilization;
+	}
+
+	/**
+	 * Get previous utilization of IO in percentage.
+	 * 
+	 * @return previous utilization of IO in percents
+	 */
+	public double getPreviousUtilizationOfIo() {
+		double utilization = getPreviousUtilizationIops() / getIops();
 		if (utilization > 1 && utilization < 1.01) {
 			utilization = 1;
 		}
@@ -295,6 +335,23 @@ public class HostDynamicWorkload extends Host {
 		this.previousUtilizationMips = previousUtilizationMips;
 	}
 
+	public double getUtilizationIops() {
+		return utilizationIops;
+	}
+
+	public void setUtilizationIops(double utilizationIops) {
+		this.utilizationIops = utilizationIops;
+	}
+
+	public double getPreviousUtilizationIops() {
+		return previousUtilizationIops;
+	}
+
+	public void setPreviousUtilizationIops(double previousUtilizationIops) {
+		this.previousUtilizationIops = previousUtilizationIops;
+	}
+
+	
 	/**
 	 * Gets the state history.
 	 * 

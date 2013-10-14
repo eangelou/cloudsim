@@ -123,6 +123,7 @@ public class PowerVm extends Vm {
 			}
 			mad = Stat.median(deviationSum);
 		}
+		//FIXME: should probably be mad * getMips(). A bug report has been generated @ cloudsim.
 		return mad;
 	}
 

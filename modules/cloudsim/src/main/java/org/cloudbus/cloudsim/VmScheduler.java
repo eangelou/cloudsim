@@ -37,6 +37,9 @@ public abstract class VmScheduler {
 	/** The total available mips. */
 	private double availableMips;
 	
+	/** The total available iops. */
+	private double availableIops;
+
 	/** Host's ioProvisioner */
 	private IoProvisioner ioProvisioner;
 
@@ -257,11 +260,19 @@ public abstract class VmScheduler {
 		this.iops = iops;
 	}
 */	
+	
+	/**
+	 * Sets the currently available iops
+	 */
+	public void setAvailableIops(double availableIops) {
+		this.availableIops = availableIops;
+	}
+	
 	/**
 	 * Gets the currently available iops
 	 */
-	public int getAvailableIops(){
-		return ioProvisioner.getAvailableIoBw();
+	public double getAvailableIops(){
+		return this.availableIops;
 	}
 /*	
 	/**
@@ -365,6 +376,7 @@ public abstract class VmScheduler {
 	}
 	
 	public boolean allocateIopsForVm(Vm vm, Double currentRequestedIops) {
+		setAvailableIops(0);
 		if(allocatedIopsMap.get(vm.getUid()) == null){
 			allocatedIopsMap.put(vm.getUid(), 0.0);
 			requestedIopsMap.put(vm.getUid(), currentRequestedIops);
@@ -394,6 +406,7 @@ public abstract class VmScheduler {
 				//System.err.println("Allocating for (" + vmId + ") " + iopsScaleFactor * requestedIopsMap.get(vmId));
 				allocatedIopsMap.put(vmId, requestedIopsMap.get(vmId));
 			}			
+			setAvailableIops(ioProvisioner.getIoBw() - totalRequestedIops);
 		} else {
 			double iopsShare = ioProvisioner.getIoBw() / requestedIopsMap.size();
 			for (String vmId : allocatedIopsMap.keySet()) {
