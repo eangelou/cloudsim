@@ -9,7 +9,6 @@
 package org.cloudbus.cloudsim.power;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -41,7 +40,7 @@ import org.cloudbus.cloudsim.util.ExecutionTimeMeasurer;
  * @author Anton Beloglazov
  * @since CloudSim Toolkit 3.0
  */
-public abstract class PowerVmAllocationPolicyMigrationAbstractIo extends PowerVmAllocationPolicyMigrationAbstract {
+public abstract class PowerVmAllocationPolicyMigrationAbstractIoWeighted extends PowerVmAllocationPolicyMigrationAbstract {
 	
 	/**The significance of the mips utilization in the allocation process*/
 	protected double weightMipsUtil;
@@ -56,13 +55,13 @@ public abstract class PowerVmAllocationPolicyMigrationAbstractIo extends PowerVm
 	private final List<Map<String, Object>> savedAllocation = new ArrayList<Map<String, Object>>();
 
 	/** The utilization history. */
-	private final Map<Integer, List<Double>> utilizationHistoryIo = new HashMap<Integer, List<Double>>();
+	private final Map<Integer, List<Double>> utilizationHistory = new HashMap<Integer, List<Double>>();
 
 	/** The metric history. */
-	private final Map<Integer, List<Double>> metricHistoryIo = new HashMap<Integer, List<Double>>();
+	private final Map<Integer, List<Double>> metricHistory = new HashMap<Integer, List<Double>>();
 
 	/** The time history. */
-	private final Map<Integer, List<Double>> timeHistoryIo = new HashMap<Integer, List<Double>>();
+	private final Map<Integer, List<Double>> timeHistory = new HashMap<Integer, List<Double>>();
 
 	/** The execution time history vm selection. */
 	private final List<Double> executionTimeHistoryVmSelection = new LinkedList<Double>();
@@ -85,7 +84,7 @@ public abstract class PowerVmAllocationPolicyMigrationAbstractIo extends PowerVm
 	 * @param hostList the host list
 	 * @param vmSelectionPolicy the vm selection policy
 	 */
-	public PowerVmAllocationPolicyMigrationAbstractIo(
+	public PowerVmAllocationPolicyMigrationAbstractIoWeighted(
 			List<? extends Host> hostList,
 			PowerVmSelectionPolicy vmSelectionPolicy, PowerVmSelectionPolicyIo vmSelectionPolicyIo,
 			double weightMipsUtil, double weightIopsUtil) {
@@ -113,13 +112,6 @@ public abstract class PowerVmAllocationPolicyMigrationAbstractIo extends PowerVm
 	public List<Map<String, Object>> optimizeAllocation(List<? extends Vm> vmList) {
 		ExecutionTimeMeasurer.start("optimizeAllocationTotal");
 		
-		ExecutionTimeMeasurer.start("optimizeAllocationHostSelection");
-		List<PowerHostUtilizationHistoryIo> overUtilizedHostsCpu = getOverUtilizedHostsCpu();
-		getExecutionTimeHistoryHostSelection().add(
-				ExecutionTimeMeasurer.end("optimizeAllocationHostSelection"));
-
-		printOverUtilizedHosts(overUtilizedHostsCpu);
-
 		ExecutionTimeMeasurer.start("optimizeAllocationHostSelectionIo");
 		List<PowerHostUtilizationHistoryIo> overUtilizedHostsIo = getOverUtilizedHostsIo();
 		getExecutionTimeHistoryHostSelectionIo().add(
@@ -130,26 +122,17 @@ public abstract class PowerVmAllocationPolicyMigrationAbstractIo extends PowerVm
 		saveAllocation();
 
 		ExecutionTimeMeasurer.start("optimizeAllocationVmSelectionIo");
-		List<List<? extends Vm>> vmsToMigrate = getVmsToMigrateFromHosts(overUtilizedHostsCpu, overUtilizedHostsIo);
-		//TODO: Refactor to remove coupling with getVmsToMigrateFromHosts. We shouldn't have to know the indice of each vmsToMigrate list.
-		List<? extends Vm> vmsToMigrateCpu = vmsToMigrate.get(0);
-		List<? extends Vm> vmsToMigrateIo = vmsToMigrate.get(1);
-		
+		List<? extends Vm> vmsToMigrate = getVmsToMigrateFromHostsIo(overUtilizedHostsIo);
 		getExecutionTimeHistoryVmSelection().add(ExecutionTimeMeasurer.end("optimizeAllocationVmSelectionIo"));
 
 		Log.printLine("Reallocation of VMs from the over-utilized hosts:");
 		ExecutionTimeMeasurer.start("optimizeAllocationVmReallocation");
-		List<Map<String, Object>> migrationMap = getNewVmPlacement(
-				vmsToMigrateCpu,
-				vmsToMigrateIo,
-				new HashSet<Host>(overUtilizedHostsCpu),
-				new HashSet<Host>(overUtilizedHostsIo)
-				);
+		List<Map<String, Object>> migrationMap = getNewVmPlacement(vmsToMigrate, new HashSet<Host>(overUtilizedHostsIo));
 		getExecutionTimeHistoryVmReallocation().add(
 				ExecutionTimeMeasurer.end("optimizeAllocationVmReallocation"));
 		Log.printEmptyLine();
 
-		migrationMap.addAll(getMigrationMapFromUnderUtilizedHosts(overUtilizedHostsCpu, overUtilizedHostsIo));
+		migrationMap.addAll(getMigrationMapFromUnderUtilizedHostsIo(overUtilizedHostsIo));
 
 		restoreAllocation();
 
@@ -162,16 +145,13 @@ public abstract class PowerVmAllocationPolicyMigrationAbstractIo extends PowerVm
 	/**
 	 * Gets the migration map from under utilized hosts (Iops && Mips).
 	 * 
-	 * @param overUtilizedHostsCpu the over utilized hosts (Mips)
-	 * @param overUtilizedHostsIo the over utilized hosts (Iops)
+	 * @param overUtilizedHosts the over utilized hosts (Mips)
+	 * @param overUtilizedHostsIops the over utilized hosts (Iops)
 	 * @return the migration map from under utilized hosts
 	 */
-	protected List<Map<String, Object>> getMigrationMapFromUnderUtilizedHosts(
-			List<PowerHostUtilizationHistoryIo> overUtilizedHostsCpu,
-			List<PowerHostUtilizationHistoryIo> overUtilizedHostsIo) {
+	protected List<Map<String, Object>> getMigrationMapFromUnderUtilizedHostsIo(
+			List<PowerHostUtilizationHistoryIo> overUtilizedHosts) {
 				
-		List<PowerHostUtilizationHistoryIo> overUtilizedHosts = new LinkedList<PowerHostUtilizationHistoryIo>(overUtilizedHostsCpu);
-		overUtilizedHosts.addAll(overUtilizedHostsIo);
 		List<Map<String, Object>> migrationMap = new LinkedList<Map<String, Object>>();
 		List<PowerHost> switchedOffHosts = getSwitchedOffHosts();
 
@@ -261,8 +241,7 @@ public abstract class PowerVmAllocationPolicyMigrationAbstractIo extends PowerVm
 			}
 			if (host.isSuitableForVm(vm)) {
 				//TODO: should we look also if utilizedIops = 0?
-				if (getUtilizationOfCpuMips(host) != 0 && getUtilizationOfIops(host) !=0 
-						&& isHostOverUtilizedAfterAllocation(host, vm)) {
+				if (getUtilizationOfCpuMips(host) != 0 && isHostOverUtilizedAfterAllocation(host, vm)) {
 					continue;
 				}
 
@@ -292,7 +271,7 @@ public abstract class PowerVmAllocationPolicyMigrationAbstractIo extends PowerVm
 	protected boolean isHostOverUtilizedAfterAllocation(PowerHost host, Vm vm) {
 		boolean isHostOverUtilizedAfterAllocation = true;
 		if (host.vmCreate(vm)) {
-			isHostOverUtilizedAfterAllocation = isHostOverUtilized(host) || isHostOverUtilizedIo(host);
+			isHostOverUtilizedAfterAllocation = isHostOverUtilized(host);
 			host.vmDestroy(vm);
 		}
 		return isHostOverUtilizedAfterAllocation;
@@ -330,49 +309,19 @@ public abstract class PowerVmAllocationPolicyMigrationAbstractIo extends PowerVm
 	/**
 	 * Gets the new vm placement.
 	 * 
-	 * @param vmsToMigrateCpu the vms to migrate retreived from hosts with overutilized cpu
-	 * @param vmsToMigrateIo the vms to migrate retreived from hosts with overutilized io
-	 * @param excludedHostsCpu the excluded hosts (overutilized Cpu)
-	 * @param excludedHostsIo the excluded hosts (overutilized Io)
+	 * @param vmsToMigrate the vms to migrate
+	 * @param excludedHosts the excluded hosts
 	 * @return the new vm placement
 	 */
 	protected List<Map<String, Object>> getNewVmPlacement(
-			List<? extends Vm> vmsToMigrateCpu,
-			List<? extends Vm> vmsToMigrateIo,		
-			Set<? extends Host> excludedHostsCpu,
-			Set<? extends Host> excludedHostsIo) {
-		List<Map<String, Object>> migrationMap = new LinkedList<Map<String, Object>>();
-		//TODO: check if it's better to search if some excludedHosts are fit recipients for a vm leaving a host overutilizing a different resource.
-		Set<Host> excludedHosts = new HashSet<Host>(excludedHostsCpu);
-		excludedHosts.addAll(excludedHostsIo);
-		
-		PowerVmIoList.sortByCpuUtilization(vmsToMigrateCpu);
-		PowerVmIoList.sortByIoUtilization(vmsToMigrateIo);
-		
-		if (this.weightMipsUtil > this.weightIopsUtil) {
-			migrationMap.addAll( getNewVmPlacement(vmsToMigrateCpu, excludedHosts) );
-			migrationMap.addAll( getNewVmPlacement(vmsToMigrateIo, excludedHosts) );
-		} else {
-			migrationMap.addAll( getNewVmPlacement(vmsToMigrateIo, excludedHosts) );
-			migrationMap.addAll( getNewVmPlacement(vmsToMigrateCpu, excludedHosts) );
-		}
-
-		return migrationMap;
-	}
-		
-	/**
-	 * Gets the new vm placement based on  resource.
-	 * 
-	 * @param vmsToMigrate the vms to migrate should be already sorted by the preferred resource utilization
-	 * @param excludedHosts the excluded hosts
-	 * @return the new vm placement
-	 */		
-	protected List<Map<String, Object>> getNewVmPlacement(
 			List<? extends Vm> vmsToMigrate,
-			Set<?extends Host> excludedHosts) {
-		
+			Set<? extends Host> excludedHosts) {
 		List<Map<String, Object>> migrationMap = new LinkedList<Map<String, Object>>();
-
+		/* When mips utilization is more important sort vms by their mips util and allocate them to hosts
+		 * excluding hosts overutilizing mips. When iops utilization is more important, sort vms by
+		 * io util and allocate them to hosts excluding those overutilizing iops. 
+		 */
+		PowerVmIoList.sortByWeightedUtilization(vmsToMigrate, this.weightMipsUtil, this.weightIopsUtil);
 		for (Vm vm : vmsToMigrate) {
 			PowerHost allocatedHost = findHostForVm(vm, excludedHosts);
 			if (allocatedHost != null) {
@@ -395,15 +344,12 @@ public abstract class PowerVmAllocationPolicyMigrationAbstractIo extends PowerVm
 	 * @param excludedHosts the excluded hosts
 	 * @return the new vm placement from under utilized host
 	 */
+	//TODO: Fix for io
 	protected List<Map<String, Object>> getNewVmPlacementFromUnderUtilizedHost(
 			List<? extends Vm> vmsToMigrate,
 			Set<? extends Host> excludedHosts) {
 		List<Map<String, Object>> migrationMap = new LinkedList<Map<String, Object>>();
-		if (this.weightMipsUtil > this.weightIopsUtil){
-			PowerVmIoList.sortByCpuUtilization(vmsToMigrate);
-		} else {
-			PowerVmIoList.sortByIoUtilization(vmsToMigrate);	
-		}
+		PowerVmIoList.sortByWeightedUtilization(vmsToMigrate, this.weightMipsUtil, this.weightIopsUtil);
 		for (Vm vm : vmsToMigrate) {
 			PowerHost allocatedHost = findHostForVm(vm, excludedHosts);
 			if (allocatedHost != null) {
@@ -433,123 +379,24 @@ public abstract class PowerVmAllocationPolicyMigrationAbstractIo extends PowerVm
 	 * @return the vms to migrate from hosts
 	 */
 	protected
-			List<List<? extends Vm>>
-			getVmsToMigrateFromHosts(List<PowerHostUtilizationHistoryIo> overUtilizedHostsCpu, List<PowerHostUtilizationHistoryIo> overUtilizedHostsIo) {
-		List<PowerHostUtilizationHistoryIo> overUtilizedHostsCommon = findCommonOverUtilizedHosts(overUtilizedHostsCpu, overUtilizedHostsIo);
-		//removing common hosts from the other lists
-		overUtilizedHostsCpu.removeAll(overUtilizedHostsCommon);
-		overUtilizedHostsIo.removeAll(overUtilizedHostsCommon);
-
-		//TODO: refactor tight coupling with getVmsToMigrateFromHostsCommon
-		List<List<Vm>> vmsToMigrateCommon = getVmsToMigrateFromHostsCommon(overUtilizedHostsCommon);
-		List<Vm> vmsToMigrateCpu = new LinkedList<Vm>(vmsToMigrateCommon.get(0));
-		vmsToMigrateCpu.addAll(getVmsToMigrateFromHostsCpu(overUtilizedHostsCpu));
- 		List<Vm> vmsToMigrateIo = new LinkedList<Vm>(vmsToMigrateCommon.get(1));
-		vmsToMigrateIo.addAll(getVmsToMigrateFromHostsIo(overUtilizedHostsIo));
-		
-		List<List<? extends Vm>> vmsToMigrate = new LinkedList<List<? extends Vm>>();
-		vmsToMigrate.add(0,vmsToMigrateCpu);
-		vmsToMigrate.add(1,vmsToMigrateIo);
-		//TODO: Should we return one merged list or an array of the two list
-		return vmsToMigrate;
-	}
-	
-	List<Vm> getVmsToMigrateFromHostsIo(List<PowerHostUtilizationHistoryIo> overUtilizedHostsIo) {
-
-		List<Vm> vmsToMigrateIo = new LinkedList<Vm>();
-		
+			List<? extends Vm>
+			getVmsToMigrateFromHostsIo(List<PowerHostUtilizationHistoryIo> overUtilizedHostsIo) {
+		List<Vm> vmsToMigrate = new LinkedList<Vm>();
 		for (PowerHostUtilizationHistoryIo host : overUtilizedHostsIo) {
 			while (true) {
 				Vm vm = getVmSelectionPolicyIo().getVmToMigrate(host);
 				if (vm == null) {
 					break;
 				}
-				vmsToMigrateIo.add(vm);
-				host.vmDestroy(vm);
-				if (!isHostOverUtilizedIo(host)) {
-					break;
-				}
-			}
-		}
-		
-		return vmsToMigrateIo;
-	}
-	
-	List<Vm> getVmsToMigrateFromHostsCpu(List<PowerHostUtilizationHistoryIo> overUtilizedHostsCpu) {
-
-		List<Vm> vmsToMigrateCpu = new LinkedList<Vm>();
-		
-		for (PowerHostUtilizationHistory host : overUtilizedHostsCpu) {
-			while (true) {
-				Vm vm = getVmSelectionPolicy().getVmToMigrate(host);
-				if (vm == null) {
-					break;
-				}
-				vmsToMigrateCpu.add(vm);
+				vmsToMigrate.add(vm);
 				host.vmDestroy(vm);
 				if (!isHostOverUtilized(host)) {
 					break;
 				}
 			}
 		}
-		
-		return vmsToMigrateCpu;
+		return vmsToMigrate;
 	}
-	
-	/**
-	 * 	 * 
-	 * @param overUtilizedHostsCommon
-	 * @return returns a list of list of vms. The first list is the vms removed from hosts because they have overutilized cpu. The second is from hosts
-	 * because they have overutilized io.
-	 */
-	List<List<Vm>> getVmsToMigrateFromHostsCommon(List<PowerHostUtilizationHistoryIo> overUtilizedHostsCommon) {
-
-		List<Vm> vmsToMigrateIo = new LinkedList<Vm>();
-		List<Vm> vmsToMigrateCpu = new LinkedList<Vm>();
-						
-		if (weightMipsUtil > weightIopsUtil){
-			vmsToMigrateCpu.addAll(getVmsToMigrateFromHostsCpu(overUtilizedHostsCommon));
-			List<PowerHostUtilizationHistoryIo> overUtilizedHostsIo = new LinkedList<PowerHostUtilizationHistoryIo>(overUtilizedHostsCommon);
-			//Remove hosts that are not overutilized in IO anymore.
-			for (PowerHostUtilizationHistoryIo host: overUtilizedHostsCommon) {
-				if (!isHostOverUtilizedIo(host)){
-					overUtilizedHostsIo.remove(host);
-				}
-			}
-			vmsToMigrateIo.addAll(getVmsToMigrateFromHostsIo(overUtilizedHostsIo));
-		} else {
-			vmsToMigrateIo.addAll(getVmsToMigrateFromHostsIo(overUtilizedHostsCommon));
-			List<PowerHostUtilizationHistoryIo> overUtilizedHostsCpu = new LinkedList<PowerHostUtilizationHistoryIo>(overUtilizedHostsCommon);
-			//Remove hosts that are not overutilized in CPU anymore.
-			for (PowerHostUtilizationHistoryIo host: overUtilizedHostsCommon) {
-				if (!isHostOverUtilized(host)){
-					overUtilizedHostsCpu.remove(host);
-				}
-			}
-			vmsToMigrateCpu.addAll(getVmsToMigrateFromHostsCpu(overUtilizedHostsCpu));
-			
-		}
-		
-		List<List<Vm>> vmsToMigrateCommon = new LinkedList<List<Vm>>();
-		vmsToMigrateCommon.add(0, vmsToMigrateCpu);
-		vmsToMigrateCommon.add(1, vmsToMigrateIo);
-		
-		return vmsToMigrateCommon;
-	}
-	
-	protected List<PowerHostUtilizationHistoryIo> findCommonOverUtilizedHosts(
-			List<PowerHostUtilizationHistoryIo> overUtilizedHostsCpu,
-			List<PowerHostUtilizationHistoryIo> overUtilizedHostsIo) {
-		List<PowerHostUtilizationHistoryIo> overUtilizedHostsCommon = new LinkedList<PowerHostUtilizationHistoryIo>();
-		//Find the hosts that are overutilized both in cpu and io.
-		for (PowerHostUtilizationHistoryIo host : overUtilizedHostsIo) {
-			if (overUtilizedHostsCpu.contains(host)){
-				overUtilizedHostsCommon.add(host);
-			}
-		}
-		return overUtilizedHostsCommon;
-	}
-	
 /*	
 	*//**
 	 * Gets the vms to migrate from hosts.
@@ -649,7 +496,7 @@ public abstract class PowerVmAllocationPolicyMigrationAbstractIo extends PowerVm
 	 * 
 	 * @return the over utilized hosts
 	 */
-	protected List<PowerHostUtilizationHistoryIo> getOverUtilizedHostsCpu() {
+	protected List<PowerHostUtilizationHistoryIo> getOverUtilizedHostsIo() {
 		List<PowerHostUtilizationHistoryIo> overUtilizedHosts = new LinkedList<PowerHostUtilizationHistoryIo>();
 		for (PowerHostUtilizationHistoryIo host : this.<PowerHostUtilizationHistoryIo> getHostList()) {
 			if (isHostOverUtilized(host)) {
@@ -658,31 +505,6 @@ public abstract class PowerVmAllocationPolicyMigrationAbstractIo extends PowerVm
 		}
 		return overUtilizedHosts;
 	}
-
-	
-	/**
-	 * Gets the over utilized hosts.
-	 * 
-	 * @return the over utilized hosts
-	 */
-	protected List<PowerHostUtilizationHistoryIo> getOverUtilizedHostsIo() {
-		List<PowerHostUtilizationHistoryIo> overUtilizedHostsIo = new LinkedList<PowerHostUtilizationHistoryIo>();
-		for (PowerHostUtilizationHistoryIo host : this.<PowerHostUtilizationHistoryIo> getHostList()) {
-			if (isHostOverUtilizedIo(host)) {
-				overUtilizedHostsIo.add(host);
-			}
-		}
-		return overUtilizedHostsIo;
-	}
-	
-	/**
-	 * Checks if is host over utilized.
-	 * 
-	 * @param host the host
-	 * @return true, if is host over utilized
-	 */
-	protected abstract boolean isHostOverUtilizedIo(PowerHost host);
-
 
 	/**
 	 * Gets the switched off host.
@@ -707,48 +529,13 @@ public abstract class PowerVmAllocationPolicyMigrationAbstractIo extends PowerVm
 	 * @return the under utilized host
 	 */
 	protected PowerHost getUnderUtilizedHost(Set<? extends Host> excludedHosts) {
-		return (this.weightMipsUtil > this.weightMipsUtil) ? getUnderUtilizedHostCpu(excludedHosts) : getUnderUtilizedHostIo(excludedHosts) ;
-	}
-	
-	
-	/**
-	 * Gets the under utilized host. (io)
-	 * 
-	 * @param excludedHosts the excluded hosts
-	 * @return the under utilized host
-	 */
-	protected PowerHost getUnderUtilizedHostIo(Set<? extends Host> excludedHosts) {
 		double minUtilization = 1;
 		PowerHost underUtilizedHost = null;
 		for (PowerHost host : this.<PowerHost> getHostList()) {
 			if (excludedHosts.contains(host)) {
 				continue;
 			}
-			double utilization = host.getUtilizationOfIo();
-			if (utilization > 0 && utilization < minUtilization
-					&& !areAllVmsMigratingOutOrAnyVmMigratingIn(host)) {
-				minUtilization = utilization;
-				underUtilizedHost = host;
-			}
-		}
-		return underUtilizedHost;
-	}
-	
-	
-	/**
-	 * Gets the under utilized host. (cpu)
-	 * 
-	 * @param excludedHosts the excluded hosts
-	 * @return the under utilized host
-	 */
-	protected PowerHost getUnderUtilizedHostCpu(Set<? extends Host> excludedHosts) {
-		double minUtilization = 1;
-		PowerHost underUtilizedHost = null;
-		for (PowerHost host : this.<PowerHost> getHostList()) {
-			if (excludedHosts.contains(host)) {
-				continue;
-			}
-			double utilization = host.getUtilizationOfCpu();
+			double utilization = this.weightMipsUtil *  host.getUtilizationOfCpu() + this.weightIopsUtil * host.getUtilizationOfIo();
 			if (utilization > 0 && utilization < minUtilization
 					&& !areAllVmsMigratingOutOrAnyVmMigratingIn(host)) {
 				minUtilization = utilization;
@@ -790,21 +577,21 @@ public abstract class PowerVmAllocationPolicyMigrationAbstractIo extends PowerVm
 	 * @param host the host
 	 * @param metric the metric
 	 */
-	protected void addHistoryEntryIo(HostDynamicWorkload host, double metric) {
+	protected void addHistoryEntry(HostDynamicWorkload host, double metric) {
 		int hostId = host.getId();
-		if (!getTimeHistoryIo().containsKey(hostId)) {
-			getTimeHistoryIo().put(hostId, new LinkedList<Double>());
+		if (!getTimeHistory().containsKey(hostId)) {
+			getTimeHistory().put(hostId, new LinkedList<Double>());
 		}
-		if (!getUtilizationHistoryIo().containsKey(hostId)) {
-			getUtilizationHistoryIo().put(hostId, new LinkedList<Double>());
+		if (!getUtilizationHistory().containsKey(hostId)) {
+			getUtilizationHistory().put(hostId, new LinkedList<Double>());
 		}
-		if (!getMetricHistoryIo().containsKey(hostId)) {
-			getMetricHistoryIo().put(hostId, new LinkedList<Double>());
+		if (!getMetricHistory().containsKey(hostId)) {
+			getMetricHistory().put(hostId, new LinkedList<Double>());
 		}
-		if (!getTimeHistoryIo().get(hostId).contains(CloudSim.clock())) {
-			getTimeHistoryIo().get(hostId).add(CloudSim.clock());
-			getUtilizationHistoryIo().get(hostId).add(host.getUtilizationOfCpu());
-			getMetricHistoryIo().get(hostId).add(metric);
+		if (!getTimeHistory().get(hostId).contains(CloudSim.clock())) {
+			getTimeHistory().get(hostId).add(CloudSim.clock());
+			getUtilizationHistory().get(hostId).add(host.getUtilizationOfCpu());
+			getMetricHistory().get(hostId).add(metric);
 		}
 	}
 
@@ -901,22 +688,6 @@ public abstract class PowerVmAllocationPolicyMigrationAbstractIo extends PowerVm
 	}
 
 	/**
-	 * Gets the utilization of the IO in IOPS for the current potentially allocated VMs.
-	 *
-	 * @param host the host
-	 *
-	 * @return the utilization of the IO in IOPS
-	 */
-	protected double getUtilizationOfIops(PowerHost host) {
-		double hostUtilizationIops = 0;
-		for (Vm vm2 : host.getVmList()) {
-			hostUtilizationIops += host.getAllocatedIopsForVm(vm2);
-		}
-		return hostUtilizationIops;
-	}
-
-	
-	/**
 	 * Gets the saved allocation.
 	 * 
 	 * @return the saved allocation
@@ -930,8 +701,8 @@ public abstract class PowerVmAllocationPolicyMigrationAbstractIo extends PowerVm
 	 * 
 	 * @return the utilization history
 	 */
-	public Map<Integer, List<Double>> getUtilizationHistoryIo() {
-		return utilizationHistoryIo;
+	public Map<Integer, List<Double>> getUtilizationHistory() {
+		return utilizationHistory;
 	}
 
 	/**
@@ -939,8 +710,8 @@ public abstract class PowerVmAllocationPolicyMigrationAbstractIo extends PowerVm
 	 * 
 	 * @return the metric history
 	 */
-	public Map<Integer, List<Double>> getMetricHistoryIo() {
-		return metricHistoryIo;
+	public Map<Integer, List<Double>> getMetricHistory() {
+		return metricHistory;
 	}
 
 	/**
@@ -948,8 +719,8 @@ public abstract class PowerVmAllocationPolicyMigrationAbstractIo extends PowerVm
 	 * 
 	 * @return the time history
 	 */
-	public Map<Integer, List<Double>> getTimeHistoryIo() {
-		return timeHistoryIo;
+	public Map<Integer, List<Double>> getTimeHistory() {
+		return timeHistory;
 	}
 
 	/**

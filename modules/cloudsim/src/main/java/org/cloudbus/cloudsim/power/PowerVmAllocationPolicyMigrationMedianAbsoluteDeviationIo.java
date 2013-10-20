@@ -16,7 +16,7 @@ import org.cloudbus.cloudsim.Vm;
 import org.cloudbus.cloudsim.util.MathUtil;
 
 /**
- * The Inter Quartile Range (IQR) VM allocation policy.
+ * The Median Absolute Deviation (MAD) VM allocation policy.
  * 
  * If you are using any algorithms, policies or workload included in the power package, please cite
  * the following paper:
@@ -29,7 +29,7 @@ import org.cloudbus.cloudsim.util.MathUtil;
  * @author Anton Beloglazov
  * @since CloudSim Toolkit 3.0
  */
-public class PowerVmAllocationPolicyMigrationInterQuartileRangeIo extends
+public class PowerVmAllocationPolicyMigrationMedianAbsoluteDeviationIo extends
 		PowerVmAllocationPolicyMigrationAbstractIo {
 
 	/** The safety parameter. */
@@ -45,9 +45,8 @@ public class PowerVmAllocationPolicyMigrationInterQuartileRangeIo extends
 	 * @param vmSelectionPolicy the vm selection policy
 	 * @param safetyParameter the safety parameter
 	 * @param utilizationThreshold the utilization threshold
-	 * @param vmSelectionPolicyIo 
 	 */
-	public PowerVmAllocationPolicyMigrationInterQuartileRangeIo(
+	public PowerVmAllocationPolicyMigrationMedianAbsoluteDeviationIo(
 			List<? extends Host> hostList,
 			PowerVmSelectionPolicy vmSelectionPolicy,
 			PowerVmSelectionPolicyIo vmSelectionPolicyIo,
@@ -68,7 +67,7 @@ public class PowerVmAllocationPolicyMigrationInterQuartileRangeIo extends
 	 * @param vmSelectionPolicy the vm selection policy
 	 * @param safetyParameter the safety parameter
 	 */
-	public PowerVmAllocationPolicyMigrationInterQuartileRangeIo(
+	public PowerVmAllocationPolicyMigrationMedianAbsoluteDeviationIo(
 			List<? extends Host> hostList,
 			PowerVmSelectionPolicy vmSelectionPolicy,
 			PowerVmSelectionPolicyIo vmSelectionPolicyIo,
@@ -89,22 +88,23 @@ public class PowerVmAllocationPolicyMigrationInterQuartileRangeIo extends
 	 */
 	@Override
 	protected boolean isHostOverUtilized(PowerHost host) {
-		PowerHostUtilizationHistoryIo _host = (PowerHostUtilizationHistoryIo) host;
-		double upperThresholdMips = 0;
+		PowerHostUtilizationHistory _host = (PowerHostUtilizationHistory) host;
+		double upperThreshold = 0;
 		try {
-			upperThresholdMips = 1 - getSafetyParameter() * getHostUtilizationMipsIqr(_host);
+			upperThreshold = 1 - getSafetyParameter() * getHostUtilizationMad(_host);
 		} catch (IllegalArgumentException e) {
 			return getFallbackVmAllocationPolicy().isHostOverUtilized(host);
 		}
-		addHistoryEntry(host, upperThresholdMips);
+		addHistoryEntry(host, upperThreshold);
 		double totalRequestedMips = 0;
 		for (Vm vm : host.getVmList()) {
 			totalRequestedMips += vm.getCurrentRequestedTotalMips();
 		}
-		double mipsUtilization = totalRequestedMips / host.getTotalMips();
-		return mipsUtilization > upperThresholdMips;
+		double utilization = totalRequestedMips / host.getTotalMips();
+		return utilization > upperThreshold;
 	}
-	
+
+
 	/**
 	 * Checks if is host over utilized.
 	 * 
@@ -114,48 +114,47 @@ public class PowerVmAllocationPolicyMigrationInterQuartileRangeIo extends
 	@Override
 	protected boolean isHostOverUtilizedIo(PowerHost host) {
 		PowerHostUtilizationHistoryIo _host = (PowerHostUtilizationHistoryIo) host;
-		double upperThresholdIops = 0;
+		double upperThreshold = 0;
 		try {
-			upperThresholdIops = 1 - getSafetyParameter() * getHostUtilizationIopsIqr(_host);
+			upperThreshold = 1 - getSafetyParameter() * getHostIoUtilizationMad(_host);
 		} catch (IllegalArgumentException e) {
 			return getFallbackVmAllocationPolicy().isHostOverUtilizedIo(host);
 		}
-		addHistoryEntryIo(host, upperThresholdIops);
+		addHistoryEntryIo(host, upperThreshold);
 		double totalRequestedIops = 0;
 		for (Vm vm : host.getVmList()) {
 			totalRequestedIops += vm.getCurrentRequestedIops();
 		}
-		double iopsUtilization = totalRequestedIops / host.getIops();
-		return iopsUtilization > upperThresholdIops;
+		double utilization = totalRequestedIops / host.getIops();
+		return utilization > upperThreshold;
 	}
-	
-	
 
+	
 	/**
-	 * Gets the host utilization iqr. (Mips)
+	 * Gets the host utilization mad.
 	 * 
 	 * @param host the host
-	 * @return the host utilization iqr
+	 * @return the host utilization mad
 	 */
-	protected double getHostUtilizationMipsIqr(PowerHostUtilizationHistory host) throws IllegalArgumentException {
-		double[] data = host.getUtilizationHistory();
+	protected double getHostIoUtilizationMad(PowerHostUtilizationHistoryIo host) throws IllegalArgumentException {
+		double[] data = host.getIoUtilizationHistory();
 		if (MathUtil.countNonZeroBeginning(data) >= 12) { // 12 has been suggested as a safe value
-			return MathUtil.iqr(data);
+			return MathUtil.mad(data);
 		}
 		throw new IllegalArgumentException();
 	}
 
+	
 	/**
-	 * Gets the host utilization iqr. (Iops)
+	 * Gets the host utilization mad.
 	 * 
 	 * @param host the host
-	 * @return the host utilization iqr
+	 * @return the host utilization mad
 	 */
-	protected double getHostUtilizationIopsIqr(PowerHostUtilizationHistoryIo host) throws IllegalArgumentException {
-		double[] data = host.getIoUtilizationHistory();
-		//Does the 12 condition hold also for the iops? Who suggested it?
+	protected double getHostUtilizationMad(PowerHostUtilizationHistory host) throws IllegalArgumentException {
+		double[] data = host.getUtilizationHistory();
 		if (MathUtil.countNonZeroBeginning(data) >= 12) { // 12 has been suggested as a safe value
-			return MathUtil.iqr(data);
+			return MathUtil.mad(data);
 		}
 		throw new IllegalArgumentException();
 	}

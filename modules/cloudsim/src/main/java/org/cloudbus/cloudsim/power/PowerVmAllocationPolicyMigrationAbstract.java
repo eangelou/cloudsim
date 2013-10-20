@@ -192,7 +192,7 @@ public abstract class PowerVmAllocationPolicyMigrationAbstract extends PowerVmAl
 	 * 
 	 * @param overUtilizedHosts the over utilized hosts
 	 */
-	protected void printOverUtilizedHosts(List<PowerHostUtilizationHistory> overUtilizedHosts) {
+	protected void printOverUtilizedHosts(List<? extends PowerHostUtilizationHistory> overUtilizedHosts) {
 		if (!Log.isDisabled()) {
 			Log.printLine("Over-utilized hosts:");
 			for (PowerHostUtilizationHistory host : overUtilizedHosts) {

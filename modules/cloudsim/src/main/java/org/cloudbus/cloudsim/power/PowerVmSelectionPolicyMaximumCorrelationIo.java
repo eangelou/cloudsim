@@ -34,14 +34,14 @@ public class PowerVmSelectionPolicyMaximumCorrelationIo extends PowerVmSelection
 	/** TESTING IMPORT */
 
 	/** The fallback policy. */
-	private PowerVmSelectionPolicy fallbackPolicy;
+	private PowerVmSelectionPolicyIo fallbackPolicy;
 
 	/**
 	 * Instantiates a new power vm selection policy maximum correlation.
 	 * 
 	 * @param fallbackPolicy the fallback policy
 	 */
-	public PowerVmSelectionPolicyMaximumCorrelationIo(PowerVmSelectionPolicy fallbackPolicy) {
+	public PowerVmSelectionPolicyMaximumCorrelationIo(PowerVmSelectionPolicyIo fallbackPolicy) {
 		super();
 		setFallbackPolicy(fallbackPolicy);
 	}
@@ -85,16 +85,14 @@ public class PowerVmSelectionPolicyMaximumCorrelationIo extends PowerVmSelection
 	protected double[][] getUtilizationMatrix(List<PowerVmIo> vmList) {
 		int n = vmList.size();
 		int m = getMinUtilizationHistorySize(vmList);
-		double[][] utilization = new double[n][m];
+		double[][] ioUtilization = new double[n][m];
 		for (int i = 0; i < n; i++) {
-			List<Double> vmUtilization =((PowerVmIo) vmList.get(i)).getUtilizationHistory();
-			List<Double> vmUtilizationIo =((PowerVmIo) vmList.get(i)).getIoUtilizationHistory();
-			for (int j = 0; j < vmUtilization.size(); j++) {
-				//TODO: Are the two histories alligned?
-				utilization[i][j] = this.weightMipsUtil * vmUtilization.get(j) + this.weightIopsUtil * vmUtilizationIo.get(j);
+			List<Double> vmIoUtilization =((PowerVmIo) vmList.get(i)).getIoUtilizationHistory();
+			for (int j = 0; j < vmIoUtilization.size(); j++) {
+				ioUtilization[i][j] = vmIoUtilization.get(j);
 			}
 		}
-		return utilization;
+		return ioUtilization;
 	}
 
 	/**
@@ -106,11 +104,7 @@ public class PowerVmSelectionPolicyMaximumCorrelationIo extends PowerVmSelection
 	protected int getMinUtilizationHistorySize(List<PowerVmIo> vmList) {
 		int minSize = Integer.MAX_VALUE;
 		for (PowerVmIo vm : vmList) {
-			int size = vm.getUtilizationHistory().size();
-			if (size < minSize) {
-				minSize = size;
-			}
-			size = vm.getIoUtilizationHistory().size();
+			int size = vm.getIoUtilizationHistory().size();
 			if (size < minSize) {
 				minSize = size;
 			}
@@ -149,7 +143,7 @@ public class PowerVmSelectionPolicyMaximumCorrelationIo extends PowerVmSelection
 	 * 
 	 * @return the fallback policy
 	 */
-	public PowerVmSelectionPolicy getFallbackPolicy() {
+	public PowerVmSelectionPolicyIo getFallbackPolicy() {
 		return fallbackPolicy;
 	}
 
@@ -158,7 +152,7 @@ public class PowerVmSelectionPolicyMaximumCorrelationIo extends PowerVmSelection
 	 * 
 	 * @param fallbackPolicy the new fallback policy
 	 */
-	public void setFallbackPolicy(PowerVmSelectionPolicy fallbackPolicy) {
+	public void setFallbackPolicy(PowerVmSelectionPolicyIo fallbackPolicy) {
 		this.fallbackPolicy = fallbackPolicy;
 	}
 	

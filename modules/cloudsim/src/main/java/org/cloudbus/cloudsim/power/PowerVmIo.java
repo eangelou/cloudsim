@@ -147,7 +147,7 @@ public class PowerVmIo extends PowerVm {
 	 * 
 	 * @return the utilization variance in MIPS
 	 */
-	public double getUtilizationVariance() {
+	public double getIoUtilizationVariance() {
 		double mean = getIoUtilizationMean();
 		double variance = 0;
 		if (!getIoUtilizationHistory().isEmpty()) {

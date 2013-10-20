@@ -35,7 +35,24 @@ import org.cloudbus.cloudsim.lists.VmList;
 public class PowerVmIoList extends PowerVmList {
 
 	/**
-	 * Sort by io utilization.
+	 * Sort by iops util
+	 * 
+	 * @param vmList the vm list
+	 */
+	public static <T extends Vm> void sortByIoUtilization(List<T> vmList) {
+		Collections.sort(vmList, new Comparator<T>() {
+			
+			@Override
+			public int compare(T a, T b) throws ClassCastException {
+				Double aIoUtilization = a.getTotalUtilizationOfIops(CloudSim.clock());
+				Double bIoUtilization = b.getTotalUtilizationOfIops(CloudSim.clock());
+				return bIoUtilization.compareTo(aIoUtilization);
+			}
+		});
+	}
+	
+	/**
+	 * Sort by weughted utilization.
 	 * 
 	 * @param vmList the vm list
 	 */
@@ -44,13 +61,13 @@ public class PowerVmIoList extends PowerVmList {
 
 			@Override
 			public int compare(T a, T b) throws ClassCastException {
-				Double aIoUtilization = 
+				Double aWeightedUtilization = 
 						weightMipsUtil * a.getTotalUtilizationOfCpu(CloudSim.clock()) + 
 						weightIopsUtil * a.getTotalUtilizationOfIo(CloudSim.clock());	
-				Double bIoUtilization = 
+				Double bWeightedUtilization = 
 						weightMipsUtil * b.getTotalUtilizationOfCpu(CloudSim.clock()) + 
 						weightIopsUtil * b.getTotalUtilizationOfIo(CloudSim.clock());	
-				return bIoUtilization.compareTo(aIoUtilization);
+				return bWeightedUtilization.compareTo(aWeightedUtilization);
 			}
 		});
 	}

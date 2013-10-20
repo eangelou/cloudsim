@@ -220,9 +220,10 @@ public class Host {
 	 * @return true, if is suitable for vm
 	 */
 	public boolean isSuitableForVm(Vm vm) {
-		// We do not check for the available iops
 		return (getVmScheduler().getPeCapacity() >= vm.getCurrentRequestedMaxMips()
 				&& getVmScheduler().getAvailableMips() >= vm.getCurrentRequestedTotalMips()
+				//TODO: should we check for available iops or not?
+				&& getVmScheduler().getAvailableIops() >= vm.getCurrentRequestedIops()
 				&& getRamProvisioner().isSuitableForVm(vm, vm.getCurrentRequestedRam()) && getBwProvisioner()
 				.isSuitableForVm(vm, vm.getCurrentRequestedBw()));
 	}
@@ -412,6 +413,10 @@ public class Host {
 		return getVmScheduler().getAllocatedMipsForVm(vm);
 	}
 
+	public double getAllocatedIopsForVm(Vm vm){
+		return getVmScheduler().getAllocatedIopsForVm(vm);
+	}
+	
 	/**
 	 * Gets the total allocated MIPS for a VM over all the PEs.
 	 * 
